@@ -2,9 +2,8 @@
 
 import rospy
 from std_msgs.msg import String
-from geometry_msgs.msg import Twist
-from geometry_msgs.msg import PoseStamped
-from nav_msgs.msg import Odometry
+from nav_msgs.msg import OccupancyGrid, GridCells, Path, Odometry
+from geometry_msgs.msg import Point, Pose, PoseStamped, Twist, PoseWithCovarianceStamped, Quaternion
 from tf.transformations import euler_from_quaternion
 import numpy
 import math 
@@ -21,13 +20,113 @@ def readGoal(msg):
     
 #get initail pose position from rviz
 def startCallBack(data):
+    global cardinalDir
+    #set cardinalDir based off start angle direction
+def readCurrentPos():
+    global pose
+    global currentPoint
+    pose = Pose();
+    odom_list.waitForTransform('map', 'base_footprint', rospy.Time(0), rospy.Duration(1.0))
+    (position, orientation) = odom_list.lookupTransform('map','base_footprint'', rospy.Time(0))
+    x=position.pose.pose.position.x
+    y=position.pose.pose.position.y
+    odomW = orientation.pose.pose.orientation
+    q = [odomW.x, odomW.y, odomW.z, odomW.w]
+    roll, pitch, yaw = euler_from_quaternion(q)
+    #convert yaw to degrees
+    global currentTheta
+    currentTheta = math.degrees(yaw)
     
+    #set to currentPoint
+    currentPoint = Point() #might need to change to pose if neighbors dont work out when looking different directions
+    currentPoint.x = x
+    currentPoint.y = y
+    currentPoint.z = 0
 #publish or just get grid cells that have obstacle with x,y location
 def publishObjectCells(grid):
     
 #adjusts global neighbors to current neighbors
 def mrRogers(current):
+    global pose
+    global front
+    global left
+    global right
+    global back
+    global unit_cell
+    global cardinalDir
+    
     print "Will you be my neighbor"
+    if(cardinalDir == 'A'):
+        front.x = current.x
+        front.y = current.y + unit_cell
+        front.z = 0
+        print "front neighbor found"
+        left.x = current.x - unit_cell #if point gets negative then off map do something to deal with this
+        left.y = current.y
+        left.z = 0
+        print "left neighbor found"
+        back.x = current.x
+        back.y = current.y - unit_cell
+        back.z = 0
+        print "back neighbor found"
+        right.x = current.x + unit_cell
+        right.y = current.y
+        right.z = 0
+        print "right neighbor found"
+    else if(cardinalDir == 'B'):
+        front.x = current.x - unit_cell
+        front.y = current.y
+        front.z = 0
+        print "front neighbor found"
+        left.x = current.x
+        left.y = current.y - unit_cell
+        left.z = 0
+        print "left neighbor found"
+        back.x = current.x + unit_cell
+        back.y = current.y 
+        back.z = 0
+        print "back neighbor found"
+        right.x = current.x
+        right.y = current.y + unit_cell
+        right.z = 0
+        print "right neighbor found"
+    else if(cardinalDir == 'C'):
+        front.x = current.x
+        front.y = current.y - unit_cell
+        front.z = 0
+        print "front neighbor found"
+        left.x = current.x + unit_cell
+        left.y = current.y
+        left.z = 0
+        print "left neighbor found"
+        back.x = current.x
+        back.y = current.y + unit_cell
+        back.z = 0
+        print "back neighbor found"
+        right.x = current.x - unit_cell
+        right.y = current.y
+        right.z = 0
+        print "right neighbor found"
+    else:
+        front.x = current.x + unit_cell
+        front.y = current.y
+        front.z = 0
+        print "front neighbor found"
+        left.x = current.x
+        left.y = current.y + unit_cell
+        left.z = 0
+        print "left neighbor found"
+        back.x = current.x - unit_cell
+        back.y = current.y 
+        back.z = 0
+        print "back neighbor found"
+        right.x = current.x
+        right.y = current.y - unit_cell
+        right.z = 0
+        print "right neighbor found"
+#takes cell of point() and returns whether the cell is occupied or not
+def cellOccupied(cell):
+    
     
 #turns right and goes straight 1 cell
 def goRight():
@@ -172,11 +271,19 @@ def run():
     global odom_list
     global pose
     global unit_cell
+    global currentTheta #theta of robot to map
+    global currentPoint #might need to change to pose if neighbors dont work out
+    global cardinalDir #direction robot is facing in respect to global map (A is +y , B is -x, C is -y, D is +x)
 
     unit_cell = .30 #m
     AMap = 0
     worldMap = 0
     path = 0
+
+    front = Point();
+    left = Point();
+    right = Point(); 
+    back = Point(); #might need to change depending on cells
 
     rospy.init_node('lab3')
     #subscribers
