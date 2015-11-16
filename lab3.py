@@ -44,6 +44,27 @@ def readCurrentPos():
     currentPoint.z = 0
 #publish or just get grid cells that have obstacle with x,y location
 def publishObjectCells(grid):
+    global height
+    global width
+    global occupiedCells
+    k = 0
+    occupiedCells = GridCells()
+    occupiedCells.header.frame_id = 'map'
+    cells.cell_width = 0.3 #change based off grid size
+    cells.cell_height = 0.3 #change based off grid size
+    
+    for i in range(1,height): #height should be set to hieght of grid
+        k=k+1
+        for j in range(1,width): #height should be set to hieght of grid
+            k=k+1
+            #print k # used for debugging
+            if (grid[k] == 100):
+                point=Point()
+                point.x=j*.3 # edit for grid size
+                point.y=i*.3 # edit for grid size
+                point.z=0
+                occupiedCells.cells.append(point)
+    
     
 #adjusts global neighbors to current neighbors
 def mrRogers(current):
@@ -54,6 +75,8 @@ def mrRogers(current):
     global back
     global unit_cell
     global cardinalDir
+    global height
+    global width
     
     print "Will you be my neighbor"
     if(cardinalDir == 'A'):
@@ -126,8 +149,31 @@ def mrRogers(current):
         print "right neighbor found"
 #takes cell of point() and returns whether the cell is occupied or not
 def cellOccupied(cell):
+    global occupiedCells
+    #for each occupiedCell compare the point to point that was passed in
+    for occupied in occupiedCells.cells:
+        if(occupied.x == cell.x and occupied.y == cell.y and occupied.z == cell.z): #break up for debug if not equating 
+            return true
+        else:
+            return false
+#currently heuristic is just straightline between point(start) and goal 
+def heuristic(start,goal):
+    x0 = start.x
+    y0 = start.y
     
+    x1 = goal.x
+    y1 = goal.y
     
+    xx = x1-x0
+    yy = y1-y0
+    
+    distance = distanceFormula(xx, yy)
+    
+    return distance
+#self explainatory but does distance formula on two points
+def distanceFormula(xx, yy)
+    d = math.sqrt((math.pow(xx,2) + math.pow(yy,2)))
+    return d
 #turns right and goes straight 1 cell
 def goRight():
     global unit_cell
@@ -271,10 +317,12 @@ def run():
     global odom_list
     global pose
     global unit_cell
-    global currentTheta #theta of robot to map
+    global currentTheta #theta of current robot to map
     global currentPoint #might need to change to pose if neighbors dont work out
     global cardinalDir #direction robot is facing in respect to global map (A is +y , B is -x, C is -y, D is +x)
-
+    global occupiedCell #list of occupied cells
+    global initPoint
+    global goal
     unit_cell = .30 #m
     AMap = 0
     worldMap = 0
@@ -284,7 +332,10 @@ def run():
     left = Point();
     right = Point(); 
     back = Point(); #might need to change depending on cells
-
+    
+    initPoint = Point();
+    goal = Point();
+    
     rospy.init_node('lab3')
     #subscribers
     worldMapSub = rospy.Subscriber('/map', OccupancyGrid, readWorldMap)
