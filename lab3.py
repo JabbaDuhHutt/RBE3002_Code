@@ -13,6 +13,36 @@ import math
 wheel_rad  = 0.035  #m
 wheel_base = 0.23 #m
 
+#A *
+def aSTAR(start,goal):
+    global currentPoint
+    global mapData
+    
+    startPos=start.pose.position
+    goalPos=goal.pose.position
+
+    publishObjectCells(mapData)
+    while(not doneFlag and not rospy.is_shutdown()):
+        costFront=9001
+        costLeft=9001
+        costRight=9001
+        CostBack=9001
+        hugh = heuristic(startPos,goalPos)
+        readCurrentPos()
+        mrRogers(currentPoint)
+        if(cellOccupied(front)):
+            costFront=distanceFormula(currentPoint,front)
+            costFront+=heuristic(front,goalPos)
+        if(cellOccupied(back)):
+            costBack=distanceFormula(currentPoint,back)
+            costBack+=heuristic(back,goalPos)
+        if(cellOccupied(left)):
+            costLeft=distanceFormula(currentPoint,left)
+            costLeft+=heuristic(left,goalPos)
+        if(cellOccupied(right)):
+            costRight=distanceFormula(currentPoint,right)
+            costRight+=heuristic(right,goalPos)
+
 #read map data
 def readWorldMap(data):
     pass
@@ -40,7 +70,7 @@ def readCurrentPos():
     currentTheta = math.degrees(yaw)
     
     #set to currentPoint
-    currentPoint = Point() #might need to change to pose if neighbors dont work out when looking different directions
+    currentPoint = Point(); #might need to change to pose if neighbors dont work out when looking different directions
     currentPoint.x = x
     currentPoint.y = y
     currentPoint.z = 0
@@ -160,6 +190,17 @@ def cellOccupied(cell):
             return False
 #currently heuristic is just straightline between point(start) and goal 
 def heuristic(start,goal):
+    global doneFlag
+
+    
+    distance = distanceFormula(start, goal)
+    if(distance==0):
+        print "I'm Here!!!"
+        doneFlag=True
+    
+    return distance
+#self explainatory but does distance formula on two points
+def distanceFormula(start1,goal1):
     x0 = start.x
     y0 = start.y
     
@@ -168,12 +209,6 @@ def heuristic(start,goal):
     
     xx = x1-x0
     yy = y1-y0
-    
-    distance = distanceFormula(xx, yy)
-    
-    return distance
-#self explainatory but does distance formula on two points
-def distanceFormula(xx, yy):
     d = math.sqrt((math.pow(xx,2) + math.pow(yy,2)))
     return d
 #turns right and goes straight 1 cell
@@ -325,6 +360,7 @@ def run():
     global occupiedCell #list of occupied cells
     global initPoint
     global goal
+    global doneFlag = False
     unit_cell = .30 #m
     AMap = 0
     worldMap = 0
