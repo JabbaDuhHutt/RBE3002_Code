@@ -8,16 +8,34 @@ from tf.transformations import euler_from_quaternion
 import numpy
 import math 
 
+global worldMap
+global target
+global front
+global left
+global right
+global back
+global odom_tf
+global odom_list
+global pose
+global unit_cell
+global currentTheta #theta of current robot to map
+global currentPoint #might need to change to pose if neighbors dont work out
+global cardinalDir #direction robot is facing in respect to global map (A is +y , B is -x, C is -y, D is +x)
+global occupiedCell #list of occupied cells
+global initPoint
+global goal
+
 #Kobuki Dimensions
 wheel_rad  = 0.035  #m
 wheel_base = 0.23 #m
 
 #read map data
 def readWorldMap(data):
+    pass
     
 #read Goal position
 def readGoal(msg):
-    
+    pass
 #get initail pose position from rviz
 def startCallBack(data):
     global cardinalDir
@@ -27,7 +45,7 @@ def readCurrentPos():
     global currentPoint
     pose = Pose();
     odom_list.waitForTransform('map', 'base_footprint', rospy.Time(0), rospy.Duration(1.0))
-    (position, orientation) = odom_list.lookupTransform('map','base_footprint'', rospy.Time(0))
+    (position, orientation) = odom_list.lookupTransform('map','base_footprint', rospy.Time(0))
     x=position.pose.pose.position.x
     y=position.pose.pose.position.y
     odomW = orientation.pose.pose.orientation
@@ -96,7 +114,7 @@ def mrRogers(current):
         right.y = current.y
         right.z = 0
         print "right neighbor found"
-    else if(cardinalDir == 'B'):
+    elif(cardinalDir == 'B'):
         front.x = current.x - unit_cell
         front.y = current.y
         front.z = 0
@@ -113,7 +131,7 @@ def mrRogers(current):
         right.y = current.y + unit_cell
         right.z = 0
         print "right neighbor found"
-    else if(cardinalDir == 'C'):
+    elif(cardinalDir == 'C'):
         front.x = current.x
         front.y = current.y - unit_cell
         front.z = 0
@@ -153,9 +171,9 @@ def cellOccupied(cell):
     #for each occupiedCell compare the point to point that was passed in
     for occupied in occupiedCells.cells:
         if(occupied.x == cell.x and occupied.y == cell.y and occupied.z == cell.z): #break up for debug if not equating 
-            return true
+            return True
         else:
-            return false
+            return False
 #currently heuristic is just straightline between point(start) and goal 
 def heuristic(start,goal):
     x0 = start.x
@@ -171,7 +189,7 @@ def heuristic(start,goal):
     
     return distance
 #self explainatory but does distance formula on two points
-def distanceFormula(xx, yy)
+def distanceFormula(xx, yy):
     d = math.sqrt((math.pow(xx,2) + math.pow(yy,2)))
     return d
 #turns right and goes straight 1 cell
@@ -344,7 +362,7 @@ def run():
     sub = rospy.Subscriber("/initialPose", PoseWithCovarianceStamped, startCallBack)
     #publishers
     pub = rospy.Publisher('/cmd_vel_mux/input/teleop', Twist,queue_size=1)
-	cellPub = rospy.Publisher('/cell_path', GridCells)
+    cellPub = rospy.Publisher('/cell_path', GridCells)
     pathPub = rospy.Publisher('/path_path', Path)
     
     #listener/broadcaster might not be needed but here
