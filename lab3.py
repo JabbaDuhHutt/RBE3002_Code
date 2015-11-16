@@ -23,6 +23,8 @@ def aSTAR(start,goal):
 
     publishObjectCells(mapData)
     while(not doneFlag and not rospy.is_shutdown()):
+        lowest
+        direction
         costFront=9001
         costLeft=9001
         costRight=9001
@@ -42,7 +44,28 @@ def aSTAR(start,goal):
         if(cellOccupied(right)):
             costRight=distanceFormula(currentPoint,right)
             costRight+=heuristic(right,goalPos)
+        if(costFront<costLeft):
+            lowest=costFront
+            direction= "front";
+        else:
+            lowest=costLeft
+            direction="left"
+        if(lowest>costBack):
+            lowest=costBack
+            direction="back"
+        if(lowest>costRight):
+            lowest=costRight
+            direction="right"
 
+        if(direction=="front"):
+            goFront()
+        elif(direction=="right"):
+            goRight()
+        elif(direction=="back"):
+            goBack()
+        elif(direction=="left"):
+            goLeft()
+            
 #read map data
 def readWorldMap(data):
     pass
