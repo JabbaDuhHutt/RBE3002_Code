@@ -8,22 +8,6 @@ from tf.transformations import euler_from_quaternion
 import numpy
 import math 
 
-global worldMap
-global target
-global front
-global left
-global right
-global back
-global odom_tf
-global odom_list
-global pose
-global unit_cell
-global currentTheta #theta of current robot to map
-global currentPoint #might need to change to pose if neighbors dont work out
-global cardinalDir #direction robot is facing in respect to global map (A is +y , B is -x, C is -y, D is +x)
-global occupiedCell #list of occupied cells
-global initPoint
-global goal
 
 #Kobuki Dimensions
 wheel_rad  = 0.035  #m
