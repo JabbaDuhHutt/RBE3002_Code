@@ -460,10 +460,7 @@ def run():
     #global goal
     global doneFlag
     global threshHold
-<<<<<<< HEAD
     global pub
-=======
->>>>>>> origin/master
     global cellThresh
     unit_cell = .30 #m
     AMap = 0
