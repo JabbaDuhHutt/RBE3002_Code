@@ -5,6 +5,7 @@ from std_msgs.msg import String
 from nav_msgs.msg import OccupancyGrid, GridCells, Path, Odometry
 from geometry_msgs.msg import Point, Pose, PoseStamped, Twist, PoseWithCovarianceStamped, Quaternion
 from tf.transformations import euler_from_quaternion
+import tf
 import numpy
 import math 
 
@@ -18,13 +19,13 @@ def aSTAR(start,goal):
     global currentPoint
     global mapData
     
-    startPos=start.pose.position
-    goalPos=goal.pose.position
+    startPos = start.pose.position
+    goalPos = goal.position
 
     publishObjectCells(mapData)
     while(not doneFlag and not rospy.is_shutdown()):
-        lowest
-        direction
+        #lowest
+        #direction
         costFront=9001
         costLeft=9001
         costRight=9001
@@ -65,6 +66,7 @@ def aSTAR(start,goal):
             goBack()
         elif(direction=="left"):
             goLeft()
+    print "DONE"
             
 #read map data
 def readWorldMap(data):
@@ -79,6 +81,7 @@ def readWorldMap(data):
     
 #read Goal position
 def readGoal(msg):
+    global initPos
     px = msg.pose.position.x
     py = msg.pose.position.y
     quat = msg.pose.orientation
@@ -90,10 +93,18 @@ def readGoal(msg):
     xEnd = px
     yEnd = py
     thetaEnd = yaw * 180.0 / math.pi
+    goal = Pose();
+    goal.position.x = px
+    goal.position.y = py
+    goal.position.z = 0
+    
+    #begin aSTAR
+    aSTAR(initPos,goal)
 #get initail pose position from rviz
 def startCallBack(data):
     global cardinalDir
     global threshHold
+    global initPos
     px = data.pose.pose.position.x
     py = data.pose.pose.position.y
     quat = data.pose.pose.orientation
@@ -115,12 +126,19 @@ def startCallBack(data):
         cardinalDir = 'C'
     else:
         print "Angle off or threshHold too low"
+    
+    initPos.header.frame_id = 'start'
+    initPos.pose.position.x = px
+    initPos.pose.position.y = py
+    intiPos.pose.position.z = 0
+    
     #set cardinalDir based off start angle direction
 def readCurrentPos():
-    global threshHold
     global pose
     global currentPoint
     global cardinalDir
+    global threshHold
+    
     pose = Pose();
     odom_list.waitForTransform('map', 'base_footprint', rospy.Time(0), rospy.Duration(1.0))
     (position, orientation) = odom_list.lookupTransform('map','base_footprint', rospy.Time(0))
@@ -155,8 +173,8 @@ def publishObjectCells(grid):
     k = 0
     occupiedCells = GridCells()
     occupiedCells.header.frame_id = 'map'
-    cells.cell_width = 0.3 #change based off grid size
-    cells.cell_height = 0.3 #change based off grid size
+    occupiedCells.cell_width = 0.3 #change based off grid size
+    occupiedCells.cell_height = 0.3 #change based off grid size
     
     for i in range(1,height): #height should be set to hieght of grid
         k=k+1
@@ -408,23 +426,24 @@ def rotate(angle):
             else:
                 spinWheels(-1,1,.1)
 #Odometry Callback function
-def readOdom(msg):
-    global pose
-    global odom_tf
+#def readOdom(msg):
+#    global pose
+#    global odom_tf
 
-    pose = msg.pose
-    geo_quat = pose.pose.orientation
+#    pose = msg.pose
+#    geo_quat = pose.pose.orientation
 
-    odom_tf.sendTransform((pose.pose.position.x, pose.pose.position.y, 0), (pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w), rospy.Time.now(), "base_footprint","odom")
+#    odom_tf.sendTransform((pose.pose.position.x, pose.pose.position.y, 0), (pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w), rospy.Time.now(), "base_footprint","odom")
     
 def run():
     global worldMap
+    #global start
     global target
     global front
     global left
     global right
     global back
-    global odom_tf
+    #global odom_tf
     global odom_list
     global pose
     global unit_cell
@@ -432,51 +451,58 @@ def run():
     global currentPoint #might need to change to pose if neighbors dont work out
     global cardinalDir #direction robot is facing in respect to global map (A is +y , B is -x, C is -y, D is +x)
     global occupiedCell #list of occupied cells
-    global initPoint
-    global goal
+    global initPos
+    #global goal
     global doneFlag
-    global threshHold #degrees?
-    global cellThresh #m
+    global threshHold
+    global cellThresh
     unit_cell = .30 #m
     AMap = 0
     worldMap = 0
     path = 0
-    doneFlag = False
-    threshHold = 3 #degrees
-    cellThresh = 0.5 #m
     
+    cellThresh = .05 #m
+    threshHold = 3 #degrees?
+    doneFlag = False
     front = Point();
     left = Point();
     right = Point(); 
     back = Point(); #might need to change depending on cells
     
-    initPoint = Point();
-    goal = Point();
+    initPos = PoseStamped();
+    #goal = Point();
+    #start = PoseStamped();
     
     rospy.init_node('lab3')
     #subscribers
     worldMapSub = rospy.Subscriber('/map', OccupancyGrid, readWorldMap)
-    markerSub = rospy.Subscriber('/move_base_simple/goal', PoseStamped, readGoal)
-    odomSub = rospy.Subscriber('/odom', Odometry, readOdom)
-    sub = rospy.Subscriber("/initialPose", PoseWithCovarianceStamped, startCallBack)
+    markerSub = rospy.Subscriber('/move_base_simple/goalRBE', PoseStamped, readGoal)
+    #odomSub = rospy.Subscriber('/odom', Odometry, readOdom)
+    sub = rospy.Subscriber('/initialPose', PoseWithCovarianceStamped, startCallBack)
     #publishers
-    pub = rospy.Publisher('/cmd_vel_mux/input/teleop', Twist,queue_size=1)
-    cellPub = rospy.Publisher('/cell_path', GridCells)
-    pathPub = rospy.Publisher('/path_path', Path)
+    pub = rospy.Publisher('/cmd_vel_mux/input/teleop', Twist, queue_size = 1)
+    cellPub = rospy.Publisher('/cell_path', GridCells, queue_size = 1)
+    pathPub = rospy.Publisher('/path_path', Path, queue_size = 1)
     
     #listener/broadcaster might not be needed but here
     odom_list = tf.TransformListener()
-    odom_tf = tf.TransformBroadcaster()
+    #odom_tf = tf.TransformBroadcaster()
     
-    odom_tf.sendTransform((0, 0, 0),(0, 0, 0, 1),rospy.Time.now(),"base_footprint","odom")
+    #odom_tf.sendTransform((0, 0, 0),(0, 0, 0, 1),rospy.Time.now(),"base_footprint","odom")
     
     sleeper = rospy.Duration(1)
     rospy.sleep(sleeper)
-
+    
     target = 0
     start = 0
     end = 0
 
+    while not rospy.is_shutdown():
+        print("starting")
+        print("waiting")
+        rospy.loginfo("Waiting...")
+        rospy.spin() 
+        #rospy.is_shutdown()
 
 
     # resolution and offset of the map
