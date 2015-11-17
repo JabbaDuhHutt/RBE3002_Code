@@ -131,13 +131,13 @@ def readCurrentPos():
     #convert yaw to degrees
     global currentTheta
     currentTheta = math.degrees(yaw)
-    if((0 - currentTheta) < threshHold): #might need to do negative angle and positive (also might want <=)
+    if(math.fabs(0 - currentTheta) < threshHold): #might need to do negative angle and positive (also might want <=)
         cardinalDir = 'D'
-    elif((90 - currentTheta) < threshHold):
+    elif(math.fabs(90 - currentTheta) < threshHold):
         cardinalDir = 'A'
-    elif((180 - currentTheta) < threshHold):
+    elif(math.fabs(180 - currentTheta) < threshHold):
         cardinalDir = 'B'
-    elif((270 - currentTheta) < threshHold):
+    elif(math.fabs(270 - currentTheta) < threshHold):
         cardinalDir = 'C'
     else:
         print "Angle off or threshHold too low"
@@ -256,7 +256,7 @@ def cellOccupied(cell):
     global occupiedCells
     #for each occupiedCell compare the point to point that was passed in
     for occupied in occupiedCells.cells:
-        if(occupied.x == cell.x and occupied.y == cell.y and occupied.z == cell.z): #break up for debug if not equating 
+        if((math.fabs(occupied.x - cell.x) < cellThresh) and (math.fabs(occupied.y - cell.y) < cellThresh) and (math.fabs(occupied.z - cell.z) < cellThresh)): #break up for debug if not equating 
             return True
         else:
             return False
@@ -434,6 +434,7 @@ def run():
     global goal
     global doneFlag = False
     global threshHold = 3 #degrees?
+    global cellThresh = .05 #m
     unit_cell = .30 #m
     AMap = 0
     worldMap = 0
