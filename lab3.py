@@ -68,18 +68,58 @@ def aSTAR(start,goal):
             
 #read map data
 def readWorldMap(data):
-    pass
+    # map listener
+    global mapData, grid
+    global width
+    global height
+    grid = data
+    mapData = data.data
+    width = data.info.width
+    height = data.info.height
     
 #read Goal position
 def readGoal(msg):
-    pass
+    px = msg.pose.position.x
+    py = msg.pose.position.y
+    quat = msg.pose.orientation
+    q = [quat.x, quat.y, quat.z, quat.w]
+    roll, pitch, yaw = euler_from_quaternion(q)
+    global xEnd
+    global yEnd
+    global thetaEnd
+    xEnd = px
+    yEnd = py
+    thetaEnd = yaw * 180.0 / math.pi
 #get initail pose position from rviz
 def startCallBack(data):
     global cardinalDir
+    global threshHold
+    px = data.pose.pose.position.x
+    py = data.pose.pose.position.y
+    quat = data.pose.pose.orientation
+    q = [quat.x, quat.y, quat.z, quat.w]
+    roll, pitch, yaw = euler_from_quaternion(q)
+    global xInit
+    global yInit
+    global thetaInit
+    xInit = px
+    yInit = py
+    thetaInit = yaw * 180.0 / math.pi
+    if((0 - thetaInit) < threshHold):
+        cardinalDir = 'D'
+    elif((90 - thetaInit) < threshHold):
+        cardinalDir = 'A'
+    elif((180 - thetaInit) < threshHold):
+        cardinalDir = 'B'
+    elif((360 - thetaInit) < threshHold):
+        cardinalDir = 'C'
+    else:
+        print "Angle off or threshHold too low"
     #set cardinalDir based off start angle direction
 def readCurrentPos():
     global pose
     global currentPoint
+    global cardinalDir
     pose = Pose();
     odom_list.waitForTransform('map', 'base_footprint', rospy.Time(0), rospy.Duration(1.0))
     (position, orientation) = odom_list.lookupTransform('map','base_footprint', rospy.Time(0))
@@ -91,7 +131,16 @@ def readCurrentPos():
     #convert yaw to degrees
     global currentTheta
     currentTheta = math.degrees(yaw)
-    
+    if((0 - currentTheta) < threshHold): #might need to do negative angle and positive (also might want <=)
+        cardinalDir = 'D'
+    elif((90 - currentTheta) < threshHold):
+        cardinalDir = 'A'
+    elif((180 - currentTheta) < threshHold):
+        cardinalDir = 'B'
+    elif((270 - currentTheta) < threshHold):
+        cardinalDir = 'C'
+    else:
+        print "Angle off or threshHold too low"
     #set to currentPoint
     currentPoint = Point(); #might need to change to pose if neighbors dont work out when looking different directions
     currentPoint.x = x
@@ -123,7 +172,7 @@ def publishObjectCells(grid):
     
 #adjusts global neighbors to current neighbors
 def mrRogers(current):
-    global pose
+    #global pose #dont think this needs to be here
     global front
     global left
     global right
@@ -384,6 +433,7 @@ def run():
     global initPoint
     global goal
     global doneFlag = False
+    global threshHold = 3 #degrees?
     unit_cell = .30 #m
     AMap = 0
     worldMap = 0
