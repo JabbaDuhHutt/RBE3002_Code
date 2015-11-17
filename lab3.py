@@ -117,6 +117,7 @@ def startCallBack(data):
         print "Angle off or threshHold too low"
     #set cardinalDir based off start angle direction
 def readCurrentPos():
+    global threshHold
     global pose
     global currentPoint
     global cardinalDir
@@ -254,6 +255,7 @@ def mrRogers(current):
 #takes cell of point() and returns whether the cell is occupied or not
 def cellOccupied(cell):
     global occupiedCells
+    global cellThresh
     #for each occupiedCell compare the point to point that was passed in
     for occupied in occupiedCells.cells:
         if((math.fabs(occupied.x - cell.x) < cellThresh) and (math.fabs(occupied.y - cell.y) < cellThresh) and (math.fabs(occupied.z - cell.z) < cellThresh)): #break up for debug if not equating 
@@ -273,11 +275,11 @@ def heuristic(start,goal):
     return distance
 #self explainatory but does distance formula on two points
 def distanceFormula(start1,goal1):
-    x0 = start.x
-    y0 = start.y
+    x0 = start1.x
+    y0 = start1.y
     
-    x1 = goal.x
-    y1 = goal.y
+    x1 = goal1.x
+    y1 = goal1.y
     
     xx = x1-x0
     yy = y1-y0
@@ -432,14 +434,17 @@ def run():
     global occupiedCell #list of occupied cells
     global initPoint
     global goal
-    global doneFlag = False
-    global threshHold = 3 #degrees?
-    global cellThresh = .05 #m
+    global doneFlag
+    global threshHold #degrees?
+    global cellThresh #m
     unit_cell = .30 #m
     AMap = 0
     worldMap = 0
     path = 0
-
+    doneFlag = False
+    threshHold = 3 #degrees
+    cellThresh = 0.5 #m
+    
     front = Point();
     left = Point();
     right = Point(); 
