@@ -14,6 +14,88 @@ import math
 wheel_rad  = 0.035  #m
 wheel_base = 0.23 #m
 
+currentAngle = 0 #radians
+#drive to a goal subscribed as /move_base_simple/goal
+def navToPose(goal):
+    global odom_list
+    global pose
+    global currentAngle
+   # global map_list
+    global goal_pose
+    #global bot_pose
+    #global geo_quat
+    #global posx
+    #global posy
+    
+  #  pose_Stamp = PoseStamped();
+   # pose_Stamp.pose.position.x = pose.pose.position.x
+    #pose_Stamp.pose.position.y = pose.pose.position.y
+   # pose_Stamp.pose.orientation = pose.pose.orientation
+    
+   # transformer = tf.TransformerROS()
+   # goal_list.waitForTransform('map', 'odom', rospy.Time(0), rospy.Duration(4.0))
+   # bot_pose = transformer.transformPose('map', pose_Stamp)
+    #Get transforms for frames
+    odom_list.waitForTransform('map', 'base_footprint', rospy.Time(0), rospy.Duration(4.0))
+    (trans,rot) = odom_list.lookupTransform('map', 'base_footprint', rospy.Time(0))
+    #start_angle = euler_from_quaternion(rot)
+    
+   
+   # print "Starting Angle:"
+    #print start_angle
+    x0 = trans[0]	#Set origin
+    y0 = trans[1]
+    print "Origin"
+    print x0
+    print y0
+    goal_pose = goal.pose
+    print "goalx"
+    print goal_pose.position.x
+    print "goaly"
+    print goal_pose.position.y
+    
+    x1 = goal_pose.position.x
+    y1 = goal_pose.position.y
+    xx = (x1 - x0)
+    yy = (y1 - y0)
+    adjust_angle = math.atan2(yy, xx)
+    
+    
+    first_rotate_angle = adjust_angle - currentAngle
+    print "Full Rotate"
+    print first_rotate_angle
+    
+    rotate(first_rotate_angle)
+    
+    print "spin!"
+    
+    
+    
+   
+    
+    
+    
+    print "Goal"
+    print x1
+    print y1
+   
+    d = math.sqrt((math.pow(xx,2) + math.pow(yy,2)))	#Distance formula
+    
+    #print d
+    
+    driveStraight(.1, d)
+    print "move!"
+   
+    final_angle_adjust = goal_pose.orientation.z
+    rotate(final_angle_adjust)
+    currentAngle = goal_pose.orientation.z
+    
+    print "spin!"
+
+    print "done"
+    
+    pass
+    
 #A *
 def aSTAR(start,goal):
     global currentPoint
@@ -25,20 +107,19 @@ def aSTAR(start,goal):
     cells_met.cell_height = 0.3 #change based off grid size
     startPos = start.pose.position
     goalPos = goal.position
-
+    
+    currentPoint = startPos #set yup for rogers
     #publishObjectCells(mapData)
     while(not doneFlag and not rospy.is_shutdown()):
-        #lowest
-        #direction
         costFront=9001
         costLeft=9001
         costRight=9001
         costBack=9001 #derp I capitalized C by accident##############################################################################################################
-        hugh = heuristic(startPos,goalPos)
-        readCurrentPos()
+        #hugh = heuristic(startPos,goalPos)
+        #readCurrentPos()
         mrRogers(currentPoint)
         if(not cellOccupied(front)):#im adding not cause I think I did logic wrong
-            costFront=distanceFormula(currentPoint,front)#seems to fix it but still i think there is a problem with if it is occupied nvm(its capitalization)
+            costFront=distanceFormula(currentPoint,front)
             costFront+=heuristic(front,goalPos)
         if(not cellOccupied(back)):
             costBack=distanceFormula(currentPoint,back)
@@ -63,15 +144,42 @@ def aSTAR(start,goal):
             direction="right"
 
         if(direction=="front"):
-            goFront()
+            Front()
         elif(direction=="right"):
-            goRight()
+            Right()
         elif(direction=="back"):
-            goBack()
+            Back()
         elif(direction=="left"):
-            goLeft()
+            Left()
     print "DONE"
+#searches through cells_met (the path) and determine waypoints off of what is not a front
+def createWaypoints():
+    global cells_met
+    waypoints = PoseStamped[]
+    waypoint = PoseStamped()
+    for i in range(0, len(cells_met.cells)): #goes from 0 to length of cells till goal
+        if (cell_met.cells[i] != front):
+            if (i == 0): #happens when obstacle is right in from 
+                waypoint.header.frame_id = 'map'
+                waypoint.pose.position.x = cell_met.cells[i].x
+                waypoint.pose.position.y = cell_met.cells[i].y
+                waypoint.pose.position.z = cell_met.cells[i].z
+                waypoint.orientation.z = 0 #until we think of better way but fine for now
+                
+                waypoints.append(waypoint) #adds waypoint to the list
+            else:
+                waypoint.header.frame_id = 'map'
+                waypoint.pose.position.x = cell_met.cells[i-1].x
+                waypoint.pose.position.y = cell_met.cells[i-1].y
+                waypoint.pose.position.z = cell_met.cells[i-1].z
+                waypoint.orientation.z = 0 #until we think of better way but fine for now
             
+                waypoints.append(waypoint) #adds waypoint to the list
+    
+    return waypoints
+             
+    
+                
 #read map data
 def readWorldMap(data):
     # map listener
@@ -121,17 +229,17 @@ def startCallBack(data):
     yInit = py
     thetaInit = yaw * 180.0 / math.pi
     if((0 - thetaInit) < threshHold):
-        cardinalDir = 'D'
+        cardinalDir = 4
     elif((90 - thetaInit) < threshHold):
-        cardinalDir = 'A'
+        cardinalDir = 1
     elif((180 - thetaInit) < threshHold):
-        cardinalDir = 'B'
+        cardinalDir = 2
     elif((360 - thetaInit) < threshHold):
-        cardinalDir = 'C'
+        cardinalDir = 3
     else:
         print "Angle off or threshHold too low"
     
-    initPos.header.frame_id = 'start'
+    initPos.header.frame_id = 'map'
     initPos.pose.position.x = px
     initPos.pose.position.y = py
     intiPos.pose.position.z = 0
@@ -160,13 +268,13 @@ def readCurrentPos():
     global currentTheta
     currentTheta = math.degrees(yaw)
     if(math.fabs(0 - currentTheta) < threshHold): #might need to do negative angle and positive (also might want <=)
-        cardinalDir = 'D'
+        cardinalDir = 4
     elif(math.fabs(90 - currentTheta) < threshHold):
-        cardinalDir = 'A'
+        cardinalDir = 1
     elif(math.fabs(180 - currentTheta) < threshHold):
-        cardinalDir = 'B'
+        cardinalDir = 2
     elif(math.fabs(270 - currentTheta) < threshHold):
-        cardinalDir = 'C'
+        cardinalDir = 3
     else:
         print "Angle off or threshHold too low"
     #set to currentPoint
@@ -224,6 +332,7 @@ def publishObjectCells(grid):
 #adjusts global neighbors to current neighbors
 def mrRogers(current):
     #global pose #dont think this needs to be here
+    global currentPoint
     global front
     global left
     global right
@@ -234,7 +343,7 @@ def mrRogers(current):
     global width
     
     print "Will you be my neighbor"
-    if(cardinalDir == 'A'):
+    if(cardinalDir == 1):
         front.x = current.x
         front.y = current.y + unit_cell
         front.z = 0
@@ -251,7 +360,7 @@ def mrRogers(current):
         right.y = current.y
         right.z = 0
         print "right neighbor found"
-    elif(cardinalDir == 'B'):
+    elif(cardinalDir == 2):
         front.x = current.x - unit_cell
         front.y = current.y
         front.z = 0
@@ -268,7 +377,7 @@ def mrRogers(current):
         right.y = current.y + unit_cell
         right.z = 0
         print "right neighbor found"
-    elif(cardinalDir == 'C'):
+    elif(cardinalDir == 3):
         front.x = current.x
         front.y = current.y - unit_cell
         front.z = 0
@@ -318,7 +427,7 @@ def heuristic(start,goal):
 
     
     distance = distanceFormula(start, goal)
-    if(distance==0):
+    if(distance < cellThresh):
         print "I'm Here!!!"
         doneFlag=True
     
@@ -335,43 +444,77 @@ def distanceFormula(start1,goal1):
     yy = y1-y0
     d = math.sqrt((math.pow(xx,2) + math.pow(yy,2)))
     return d
-#turns right and goes straight 1 cell
-def goRight():
+#progresses to right cell
+def Right():
     global unit_cell
     global right
     global cells_met
     global cellPub
+    global currentPoint
+    global cardinalDir
+    
     #rotate(-1.571)
     #driveStraight(.2,unit_cell)
+    
+    currentPoint = right #tells us that we've moved on
+    cardinalDir -= 1
+    if(cardinalDir < 1)
+        cardinalDir = 4
+    
     cells_met.cells.append(right)
     cellPub.publish(cells_met)
-#turns left and goes straight 1 cell
-def goLeft():
+#progresses to left cell
+def Left():
     global cellPub
     global left
     global unit_cell
     global cells_met
-    rotate(1.571)
-    driveStraight(.2,unit_cell)
+    global currentPoint
+    global cardinalDir
+    
+    currentPoint = left #tells us that we've moved on
+    cardinalDir += 1
+    if(cardinalDir > 4)
+        cardinalDir = 1
+    
+    #rotate(1.571)
+    #driveStraight(.2,unit_cell)
+    
     cells_met.cells.append(left)
     cellPub.publish(cells_met)
-#goes straight 1 cell
-def goFront():
+#progresses to front cell
+def Front():
     global front
     global unit_cell
     global cellPub
     global cells_met
-    driveStraight(.2,unit_cell)
+    global currentPoint
+    global cardinalDir
+    
+    currentPoint = front #tells us that we've moved on
+    
+    #driveStraight(.2,unit_cell)
+    
     cells_met.cells.append(front)
     cellPub.publish(cells_met)
-#turns 180 and goes straight 1 cell
-def goBack():
+#progresses to back cell
+def Back():
     global back
     global unit_cell
     global cells_met
     global cellPub
-    rotate(3.14)
-    driveStraight(.2,unit_cell)
+    global currentPoint
+    global cardinalDir
+    
+    currentPoint = back #tells us that we've moved on
+    cardinalDir += 2
+    if(cardinalDir == 5)
+        cardinalDir = 1
+    if(cardinalDir == 6)
+        cardinalDir = 2
+    
+    #rotate(3.14)
+    #driveStraight(.2,unit_cell)
     cells_met.cells.append(back)
     cellPub.publish(cells_met)
 #This function consumes linear and angular velocities
@@ -497,9 +640,11 @@ def run():
     global unit_cell
     global currentTheta #theta of current robot to map
     global currentPoint #might need to change to pose if neighbors dont work out
-    global cardinalDir #direction robot is facing in respect to global map (A is +y , B is -x, C is -y, D is +x)
+    global cardinalDir #direction robot is facing in respect to global map (1 is +y , 2 is -x, 3 is -y, 4 is +x)
     global occupiedCell #list of occupied cells
     global initPos
+    global currentAngle
+    global goal_pose
     #global goal
     global doneFlag
     global threshHold
@@ -527,17 +672,20 @@ def run():
     #start = PoseStamped();
     
     rospy.init_node('lab3')
+    
     #subscribers
     worldMapSub = rospy.Subscriber('/map', OccupancyGrid, readWorldMap)
     markerSub = rospy.Subscriber('/move_base_simple/goalRBE', PoseStamped, readGoal)
     #odomSub = rospy.Subscriber('/odom', Odometry, readOdom)
     sub = rospy.Subscriber('/initialPose', PoseWithCovarianceStamped, startCallBack)
+    
     #publishers
     pubGCell = rospy.Publisher('/grid_check', GridCells, queue_size=1)
     pub = rospy.Publisher('/cmd_vel_mux/input/teleop', Twist, queue_size = 1)
     cellPub = rospy.Publisher('/cell_path', GridCells, queue_size = 100)
     pathPub = rospy.Publisher('/path_path', Path, queue_size = 1)
     unknownCell = rospy.Publisher('/grid_unknown', GridCells, queue_size=1)
+    
     #listener/broadcaster might not be needed but here
     odom_list = tf.TransformListener()
     odom_tf = tf.TransformBroadcaster()
@@ -553,7 +701,7 @@ def run():
 
     while not rospy.is_shutdown():
         print("starting")
-        odom_tf.sendTransform((0, 0, 0),(0, 0, 0, 1),rospy.Time.now(),"map","base_footprint") #used for rviz
+        #odom_tf.sendTransform((0, 0, 0),(0, 0, 0, 1),rospy.Time.now(),"map","base_footprint")
         publishObjectCells(mapData)
         print("waiting")
         rospy.loginfo("Waiting...")
@@ -561,19 +709,7 @@ def run():
         #rospy.is_shutdown()
 
 
-    # resolution and offset of the map
 
-    # create a new instance of the map
-
-    # generate a path to the start and end goals
-
-    # for each node in the path, process the nodes to generate GridCells and Path messages
-  
-    # transform coordinates for map resolution and offset
-
-    # continue making messages
-
-    # do not stop publishing
     
 if __name__ == '__main__':
     try:
