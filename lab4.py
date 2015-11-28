@@ -15,6 +15,32 @@ wheel_rad  = 0.035  #m
 wheel_base = 0.23 #m
 
 currentAngle = 0 #radians
+
+def fullDrive(waypoints):#suppose to take in an array of waypoints and navigate
+	global currentPoint
+	global done
+	for element  in waypoints:
+		readCurrentPos()
+		localNav(element,currentPoint)
+	print("All Way Points Reached!!!")
+
+
+
+def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how the Slam gmapping works
+	global done
+	stuck = False
+	while not currentPos==waypoint and not stuck and not done:
+		if(cellOccupied(waypoint)):
+			stuck = True
+		readCurrentPos
+		currentPos=currentPoint
+		aSTAR(currentPos,waypoint)
+		navToPose(waypoint)
+	print("Way Point Reached!!!")
+
+
+
+
 #drive to a goal subscribed as /move_base_simple/goal
 def navToPose(goal):
     global odom_list
@@ -155,7 +181,8 @@ def aSTAR(start,goal):
 #searches through cells_met (the path) and determine waypoints off of what is not a front
 def createWaypoints():
     global cells_met
-    waypoints = PoseStamped[]
+    waypoints = []
+    waypoints = PoseStamped###################################################################################
     waypoint = PoseStamped()
     for i in range(0, len(cells_met.cells)): #goes from 0 to length of cells till goal
         if (cell_met.cells[i] != front):
@@ -458,7 +485,7 @@ def Right():
     
     currentPoint = right #tells us that we've moved on
     cardinalDir -= 1
-    if(cardinalDir < 1)
+    if(cardinalDir < 1):
         cardinalDir = 4
     
     cells_met.cells.append(right)
@@ -474,7 +501,7 @@ def Left():
     
     currentPoint = left #tells us that we've moved on
     cardinalDir += 1
-    if(cardinalDir > 4)
+    if(cardinalDir > 4):
         cardinalDir = 1
     
     #rotate(1.571)
@@ -508,9 +535,9 @@ def Back():
     
     currentPoint = back #tells us that we've moved on
     cardinalDir += 2
-    if(cardinalDir == 5)
+    if(cardinalDir == 5):
         cardinalDir = 1
-    if(cardinalDir == 6)
+    if(cardinalDir == 6):
         cardinalDir = 2
     
     #rotate(3.14)
