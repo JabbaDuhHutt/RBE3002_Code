@@ -31,6 +31,7 @@ def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how
 	global currentPoint
 	done = False
 	stuck = False
+	block = False
 	while not currentPos==waypoint and not stuck and not done:
 	    	checkArray=[]
 	        if(currentPos.x == waypoint.x):
@@ -43,7 +44,7 @@ def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how
 	                checkArray.append(cellOccupied(tempPoint))
 	                for temp2 in checkArray:
 	                    if(not temp2):
-	                        stuck = True
+	                        block = True
 	        if(currentPos.y==waypoint.y):
 	            tempX = currentPos.x
 	            tempXGoal=waypoint.x
@@ -54,11 +55,13 @@ def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how
 	                checkArray.append(cellOccupied(tempPoint))
 	                for temp2 in checkArray:
 	                    if(not temp2):
-	                        stuck = True
-	            
-		if(cellOccupied(waypoint) or stuck == True):
-			stuck = True
-			aSTAR(currentPos,waypoint)#supposingly does A* when waypoint is an occupied cell
+	                        block = True
+	        if(block):
+	            aSTAR(currentPos,waypoint)
+	            block=False
+		if(cellOccupied(waypoint)):
+		    stuck = True
+		    aSTAR(currentPos,waypoint)
 		readCurrentPos
 		currentPos=currentPoint
 		navToPose(waypoint)
