@@ -14,7 +14,7 @@ import math
 wheel_rad  = 0.035  #m
 wheel_base = 0.23 #m
 
-currentAngle = 0 #radians
+
 
 def fullDrive(waypoints):#suppose to take in an array of waypoints and navigate
 	global currentPoint
@@ -28,39 +28,13 @@ def fullDrive(waypoints):#suppose to take in an array of waypoints and navigate
 
 def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how the Slam gmapping works
 	global done
-	global currentPoint
-	done = False
 	stuck = False
 	while not currentPos==waypoint and not stuck and not done:
-	    	checkArray=[]
-	        if(currentPos.x == waypoint.x):
-	            tempY = currentPos.y
-	            tempYGoal=waypoint.y
-	            for temp in range (tempY, tempYGoal):
-	                tempPoint = Point()
-	                tempPoint.x=currentPos.x
-	                tempPoint.y=temp
-	                checkArray.append(cellOccupied(tempPoint))
-	                for temp2 in checkArray:
-	                    if(not temp2):
-	                        stuck = True
-	        if(currentPos.y==waypoint.y):
-	            tempX = currentPos.x
-	            tempXGoal=waypoint.x
-	            for temp in range (tempX,tempXGoal):
-	                tempPoint = Point()
-	                tempPoint.x = temp
-	                tempPoint.y = currentPos.y
-	                checkArray.append(cellOccupied(tempPoint))
-	                for temp2 in checkArray:
-	                    if(not temp2):
-	                        stuck = True
-	            
-		if(cellOccupied(waypoint) or stuck == True):
+		if(cellOccupied(waypoint)):
 			stuck = True
-			aSTAR(currentPos,waypoint)#supposingly does A* when waypoint is an occupied cell
 		readCurrentPos
 		currentPos=currentPoint
+		aSTAR(currentPos,waypoint)
 		navToPose(waypoint)
 	print("Way Point Reached!!!")
 
@@ -78,7 +52,7 @@ def navToPose(goal):
     #global geo_quat
     #global posx
     #global posy
-    
+    print currentAngle
   #  pose_Stamp = PoseStamped();
    # pose_Stamp.pose.position.x = pose.pose.position.x
     #pose_Stamp.pose.position.y = pose.pose.position.y
@@ -135,15 +109,18 @@ def navToPose(goal):
     
     #print d
     
-    driveStraight(.1, d)
+    driveStraight(.15, d)
     print "move!"
-   
-    final_angle_adjust = goal_pose.orientation.z
+    quat = goal.pose.orientation
+    q = [quat.x, quat.y, quat.z, quat.w]
+    roll, pitch, yaw = euler_from_quaternion(q)
+    
+    final_angle_adjust = yaw - first_rotate_angle
     rotate(final_angle_adjust)
-    currentAngle = goal_pose.orientation.z
+    currentAngle = yaw
     
     print "spin!"
-
+    print currentAngle
     print "done"
     
     pass
@@ -153,34 +130,45 @@ def aSTAR(start,goal):
     global currentPoint
     global mapData
     global cells_met
+    global cellThresh
+    global doneFlag
+    global cardinalDir
     cells_met = GridCells();
     cells_met.header.frame_id = 'map'
-    cells_met.cell_width = 0.3 #change based off grid size
-    cells_met.cell_height = 0.3 #change based off grid size
+    cells_met.cell_width = 1 #m #change based off grid size
+    cells_met.cell_height = 1 #m #change based off grid size
     startPos = start.pose.position
     goalPos = goal.position
-    
-    currentPoint = startPos #set yup for rogers
+    readCurrentPos()
+    #currentPoint = startPos #set up for rogers
     #publishObjectCells(mapData)
     while(not doneFlag and not rospy.is_shutdown()):
         costFront=9001
         costLeft=9001
         costRight=9001
-        costBack=9001 #derp I capitalized C by accident##############################################################################################################
-        #hugh = heuristic(startPos,goalPos)
-        #readCurrentPos()
+        costBack=9001 
+        hugh = heuristic(currentPoint,goalPos)
+        print "HUGH:"
+        print hugh
+        if(hugh < cellThresh):
+            doneFlag = True
+            print "HUGH LOW"
+            break
+        print "PLEASE"
+        print currentPoint.x
+        print currentPoint.y
         mrRogers(currentPoint)
         if(not cellOccupied(front)):#im adding not cause I think I did logic wrong
-            costFront=distanceFormula(currentPoint,front)
+            costFront=1
             costFront+=heuristic(front,goalPos)
         if(not cellOccupied(back)):
-            costBack=distanceFormula(currentPoint,back)
+            costBack=1
             costBack+=heuristic(back,goalPos)
         if(not cellOccupied(left)):
-            costLeft=distanceFormula(currentPoint,left)
+            costLeft=1
             costLeft+=heuristic(left,goalPos)
         if(not cellOccupied(right)):
-            costRight=distanceFormula(currentPoint,right)
+            costRight=1
             costRight+=heuristic(right,goalPos)
         if(costFront<costLeft):
             lowest=costFront
@@ -197,35 +185,55 @@ def aSTAR(start,goal):
 
         if(direction=="front"):
             Front()
+            print "FORWARD"
         elif(direction=="right"):
             Right()
+            print "RIGHT"
         elif(direction=="back"):
             Back()
+            print "BACK"
         elif(direction=="left"):
             Left()
+            print "LEFT"
+        print "Current X:"
+        print currentPoint.x
+        print "Current Y:"
+        print currentPoint.y
+        print "Cardinal Dir:"
+        print cardinalDir
+
     print "DONE"
 #searches through cells_met (the path) and determine waypoints off of what is not a front
 def createWaypoints():
     global cells_met
     waypoints = []
-    waypoints = PoseStamped###################################################################################
     waypoint = PoseStamped()
     for i in range(0, len(cells_met.cells)): #goes from 0 to length of cells till goal
-        if (cell_met.cells[i] != front):
+        if (cells_met.cells[i] != front):
             if (i == 0): #happens when obstacle is right in from 
                 waypoint.header.frame_id = 'map'
-                waypoint.pose.position.x = cell_met.cells[i].x
-                waypoint.pose.position.y = cell_met.cells[i].y
-                waypoint.pose.position.z = cell_met.cells[i].z
-                waypoint.orientation.z = 0 #until we think of better way but fine for now
+                waypoint.pose.position.x = cells_met.cells[i].x
+                waypoint.pose.position.y = cells_met.cells[i].y
+                waypoint.pose.position.z = cells_met.cells[i].z
+                waypoint.pose.orientation.z = 0 #until we think of better way but fine for now
                 
                 waypoints.append(waypoint) #adds waypoint to the list
+                
+            elif (i == len(cells_met.cells)):
+                waypoint.header.frame_id = 'map'
+                waypoint.pose.position.x = cells_met.cells[i].x
+                waypoint.pose.position.y = cells_met.cells[i].y
+                waypoint.pose.position.z = cells_met.cells[i].z
+                waypoint.pose.orientation.z = 0 #until we think of better way but fine for now
+                
+                waypoints.append(waypoint) #adds waypoint to the list
+                
             else:
                 waypoint.header.frame_id = 'map'
-                waypoint.pose.position.x = cell_met.cells[i-1].x
-                waypoint.pose.position.y = cell_met.cells[i-1].y
-                waypoint.pose.position.z = cell_met.cells[i-1].z
-                waypoint.orientation.z = 0 #until we think of better way but fine for now
+                waypoint.pose.position.x = cells_met.cells[i-1].x
+                waypoint.pose.position.y = cells_met.cells[i-1].y
+                waypoint.pose.position.z = cells_met.cells[i-1].z
+                waypoint.pose.orientation.z = 0 #until we think of better way but fine for now
             
                 waypoints.append(waypoint) #adds waypoint to the list
     
@@ -255,6 +263,8 @@ def readGoal(msg):
     global xEnd
     global yEnd
     global thetaEnd
+    #print initPos.pose.position.x
+    #print initPos.pose.position.y
     xEnd = px
     yEnd = py
     thetaEnd = yaw * 180.0 / math.pi
@@ -265,6 +275,11 @@ def readGoal(msg):
     
     #begin aSTAR
     aSTAR(initPos,goal)
+    #create waypoints
+    waypoints = createWaypoints()
+    for i in range (0, len(waypoints)):
+        navToPose(waypoints[i])
+        
 #get initail pose position from rviz
 def startCallBack(data):
     global cardinalDir
@@ -306,7 +321,7 @@ def readCurrentPos():
     
     pose = Pose();
     odom_list.waitForTransform('map', 'base_footprint', rospy.Time(0), rospy.Duration(1.0))
-    (position, orientation) = odom_list.lookupTransform('map','base_footprint', rospy.Time(0))###############################################################################I mad changes here
+    (position, orientation) = odom_list.lookupTransform('map','base_footprint', rospy.Time(0))
     x=position[0]#position.pose.pose.position.x
     y=position[1]#position.pose.pose.position.y
     odomWX=orientation[0]
@@ -318,7 +333,9 @@ def readCurrentPos():
     #q = [odomW.x, odomW.y, odomW.z, odomW.w]###############################################################################
     roll, pitch, yaw = euler_from_quaternion(q)
     #convert yaw to degrees
-    global currentTheta
+    global currentAngle
+    #print currentTheta
+    currentAngle = yaw #to correct for driving issues
     currentTheta = math.degrees(yaw)
     if(math.fabs(0 - currentTheta) < threshHold): #might need to do negative angle and positive (also might want <=)
         cardinalDir = 4
@@ -429,6 +446,10 @@ def mrRogers(current):
         right.x = current.x
         right.y = current.y + unit_cell
         right.z = 0
+        print current.x
+        print current.y
+        print right.x
+        print right.y
         print "right neighbor found"
     elif(cardinalDir == 3):
         front.x = current.x
@@ -513,7 +534,9 @@ def Right():
     cardinalDir -= 1
     if(cardinalDir < 1):
         cardinalDir = 4
-    
+    print "MEEEE"
+    print currentPoint.x
+    print currentPoint.y    
     cells_met.cells.append(right)
     cellPub.publish(cells_met)
 #progresses to left cell
@@ -529,7 +552,8 @@ def Left():
     cardinalDir += 1
     if(cardinalDir > 4):
         cardinalDir = 1
-    
+    #print currentPoint.x
+    #print currentPoint.y
     #rotate(1.571)
     #driveStraight(.2,unit_cell)
     
@@ -545,7 +569,8 @@ def Front():
     global cardinalDir
     
     currentPoint = front #tells us that we've moved on
-    
+    #print currentPoint.x
+    #print currentPoint.y
     #driveStraight(.2,unit_cell)
     
     cells_met.cells.append(front)
@@ -565,7 +590,8 @@ def Back():
         cardinalDir = 1
     if(cardinalDir == 6):
         cardinalDir = 2
-    
+    #print currentPoint.x
+    #print currentPoint.y    
     #rotate(3.14)
     #driveStraight(.2,unit_cell)
     cells_met.cells.append(back)
@@ -610,15 +636,15 @@ def driveStraight(speed, distance):
     global odom_list
     global pose 	
     #print "Here" #was for debug
-    x0 = pose.position.x	#Set origin
-    y0 = pose.position.y
+    x0 = pose.pose.position.x	#Set origin
+    y0 = pose.pose.position.y
 
     #Loop until the distance between the attached frame and the origin is equal to the
     #distance specifyed 
     done = False
     while (not done and not rospy.is_shutdown()):
-        x1 = pose.position.x
-        y1 = pose.position.y
+        x1 = pose.pose.position.x
+        y1 = pose.pose.position.y
         xx = (x1 - x0)
         yy = (y1 - y0)
         d = math.sqrt((math.pow(xx,2) + math.pow(yy,2)))	#Distance formula
@@ -666,18 +692,18 @@ def rotate(angle):
             done = True
         else:
             if (angle > 0):
-                spinWheels(1,-1,.1)
+                spinWheels(1.3,-1.3,.1)
             else:
-                spinWheels(-1,1,.1)
+                spinWheels(-1.3,1.3,.1)
 #Odometry Callback function
-#def readOdom(msg):
-#    global pose
-#    global odom_tf
+def readOdom(msg):
+    global pose
+    global odom_tf
 
-#    pose = msg.pose
-#    geo_quat = pose.pose.orientation
+    pose = msg.pose
+    geo_quat = pose.pose.orientation
 
-#    odom_tf.sendTransform((pose.pose.position.x, pose.pose.position.y, 0), (pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w), rospy.Time.now(), "base_footprint","odom")
+    odom_tf.sendTransform((pose.pose.position.x, pose.pose.position.y, 0), (pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w), rospy.Time.now(), "base_footprint","odom")
     
 def run():
     global worldMap
@@ -707,12 +733,14 @@ def run():
     global cellPub
     global cellThresh
     global cells_met
-    unit_cell = .3 #m
+    unit_cell = 1 #m
     AMap = 0
     worldMap = 0
     path = 0
     
-    cellThresh = .05 #m
+    currentAngle = 0 #radians
+    cardinalDir = 1
+    cellThresh = .2 #m
     threshHold = 3 #degrees?
     doneFlag = False
     front = Point();
@@ -729,7 +757,7 @@ def run():
     #subscribers
     worldMapSub = rospy.Subscriber('/map', OccupancyGrid, readWorldMap)
     markerSub = rospy.Subscriber('/move_base_simple/goalRBE', PoseStamped, readGoal)
-    #odomSub = rospy.Subscriber('/odom', Odometry, readOdom)
+    odomSub = rospy.Subscriber('/odom', Odometry, readOdom)
     sub = rospy.Subscriber('/initialPose', PoseWithCovarianceStamped, startCallBack)
     
     #publishers
@@ -756,6 +784,7 @@ def run():
         print("starting")
         #odom_tf.sendTransform((0, 0, 0),(0, 0, 0, 1),rospy.Time.now(),"map","base_footprint")
         publishObjectCells(mapData)
+        #driveStraight(.2, 1)
         print("waiting")
         rospy.loginfo("Waiting...")
         rospy.spin() 
