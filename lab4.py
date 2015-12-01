@@ -29,9 +29,42 @@ def fullDrive(waypoints):#suppose to take in an array of waypoints and navigate
 def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how the Slam gmapping works
 	global done
 	stuck = False
+	block = False
 	while not currentPos==waypoint and not stuck and not done:
+<<<<<<< HEAD
 		if(cellOccupied(waypoint)):
 			stuck = True
+=======
+	    	checkArray=[]
+	        if(currentPos.x == waypoint.x):
+	            tempY = currentPos.y
+	            tempYGoal=waypoint.y
+	            for temp in range (tempY, tempYGoal):
+	                tempPoint = Point()
+	                tempPoint.x=currentPos.x
+	                tempPoint.y=temp
+	                checkArray.append(cellOccupied(tempPoint))
+	                for temp2 in checkArray:
+	                    if(not temp2):
+	                        block = True
+	        if(currentPos.y==waypoint.y):
+	            tempX = currentPos.x
+	            tempXGoal=waypoint.x
+	            for temp in range (tempX,tempXGoal):
+	                tempPoint = Point()
+	                tempPoint.x = temp
+	                tempPoint.y = currentPos.y
+	                checkArray.append(cellOccupied(tempPoint))
+	                for temp2 in checkArray:
+	                    if(not temp2):
+	                        block = True
+	        if(block):
+	            aSTAR(currentPos,waypoint)
+	            block=False
+		if(cellOccupied(waypoint)):
+		    stuck = True
+		    aSTAR(currentPos,waypoint)
+>>>>>>> origin/master
 		readCurrentPos
 		currentPos=currentPoint
 		aSTAR(currentPos,waypoint)
