@@ -16,11 +16,23 @@ wheel_base = 0.23 #m
 
 
 
-def fullDrive(waypoints):#suppose to take in an array of waypoints and navigate
+def fullDrive():#suppose to take in an array of waypoints and navigate
 	global currentPoint
 	global done
-	for element  in waypoints:
+	global aFlag
+	global waypoints
+	tempArrays=[]
+    for index in range (0,len(waypoints)):
+        tempArrays.append(waypoints[index])
+        
+    waypoints=[]
+	aFlag=False
+	for element  in tempArrays:
 		readCurrentPos()
+		if(aFlag):
+		    aSTAR(currentPoint,element.pose)
+		    aFlag=False
+		    fullDrive()
 		localNav(element,currentPoint)
 	print("All Way Points Reached!!!")
 
@@ -28,42 +40,40 @@ def fullDrive(waypoints):#suppose to take in an array of waypoints and navigate
 
 def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how the Slam gmapping works
 	global done
+	global aFlag
 	stuck = False
-	while not currentPos==waypoint and not stuck and not done:
-		if(cellOccupied(waypoint)):
-			stuck = True
-	    	checkArray=[]
-	        if(currentPos.x == waypoint.x):
-	            tempY = currentPos.y
-	            tempYGoal=waypoint.y
-	            for temp in range (tempY, tempYGoal):
-	                tempPoint = Point()
-	                tempPoint.x=currentPos.x
-	                tempPoint.y=temp
-	                checkArray.append(cellOccupied(tempPoint))
-	                for temp2 in checkArray:
-	                    if(not temp2):
-	                        block = True
-	        if(currentPos.y==waypoint.y):
-	            tempX = currentPos.x
-	            tempXGoal=waypoint.x
-	            for temp in range (tempX,tempXGoal):
-	                tempPoint = Point()
-	                tempPoint.x = temp
-	                tempPoint.y = currentPos.y
-	                checkArray.append(cellOccupied(tempPoint))
-	                for temp2 in checkArray:
-	                    if(not temp2):
-	                        block = True
-	        if(block):
-	            aSTAR(currentPos,waypoint)
-	            block=False
-		if(cellOccupied(waypoint)):
-		    stuck = True
-		    aSTAR(currentPos,waypoint)
-		readCurrentPos
-		currentPos=currentPoint
-		aSTAR(currentPos,waypoint)
+	while not (currentPos.x==waypoint.pose.position.x and currentPos.y==waypoint.pose.position.y and currentPos.z==waypoint.pose.position.z) and not stuck and not done:
+		block = False
+		if(cellOccupied(waypoint.pose.position)):
+			aFlag = True
+			break
+    	checkArray=[]
+        elif(currentPos.x == waypoint.pose.position.x):
+            tempY = currentPos.y
+            tempYGoal=waypoint.pose.position.y
+            for temp in range (tempY, tempYGoal):
+                tempPoint = Point()
+                tempPoint.x=currentPos.x
+                tempPoint.y=temp
+                checkArray.append(cellOccupied(tempPoint))
+                for temp2 in checkArray:
+                    if(temp2):
+                        block = True
+        elif(currentPos.y==waypoint.pose.position.y):
+            tempX = currentPos.x
+            tempXGoal=waypoint.pose.position.x
+            for temp in range (tempX,tempXGoal):
+                tempPoint = Point()
+                tempPoint.x = temp
+                tempPoint.y = currentPos.y
+                checkArray.append(cellOccupied(tempPoint))
+                for temp2 in checkArray:
+                    if(temp2):
+                        block = True
+        if(block):
+            aSTAR(currentPos,waypoint.pose)
+            block=False
+            fullDrive()
 		navToPose(waypoint)
 	print("Way Point Reached!!!")
 
@@ -166,7 +176,7 @@ def aSTAR(start,goal):
     cells_met.header.frame_id = 'map'
     cells_met.cell_width = 1 #m #change based off grid size
     cells_met.cell_height = 1 #m #change based off grid size
-    startPos = start.pose.position
+    #startPos = start.pose.position
     goalPos = goal.position
     readCurrentPos()
     #currentPoint = startPos #set up for rogers
@@ -282,6 +292,8 @@ def readWorldMap(data):
 #read Goal position
 def readGoal(msg):
     global initPos
+    global goal
+    global waypoints
     px = msg.pose.position.x
     py = msg.pose.position.y
     quat = msg.pose.orientation
@@ -300,12 +312,13 @@ def readGoal(msg):
     goal.position.y = py
     goal.position.z = 0
     
+    #create waypoints
+    waypoints = []
     #begin aSTAR
     aSTAR(initPos,goal)
-    #create waypoints
-    waypoints = createWaypoints()
-    for i in range (0, len(waypoints)):
-        navToPose(waypoints[i])
+    fullDrive()
+    #for i in range (0, len(waypoints)):
+    #    navToPose(waypoints[i])
         
 #get initail pose position from rviz
 def startCallBack(data):
@@ -433,8 +446,8 @@ def publishObjectCells(grid):
             #print b # used for debugging
             if (grid[b] == 0):
                 point1=Point()
-                point1.x=j*.5 # edit for grid size
-                point1.y=i*.5 # edit for grid size
+                point1.x=j*.05 # edit for grid size
+                point1.y=i*.05 # edit for grid size
                 point1.z=0
                 Cells.cells.append(point1)
     
@@ -573,7 +586,25 @@ def Right():
     global cellPub
     global currentPoint
     global cardinalDir
+    global goal
+    global waypoints
     
+    waypoint = PoseStamped()
+    T = len(cells_met.cells)
+    if(T == 0 or cells_met.cells[T-1] == goal):
+        waypoint.header.frame_id = 'map'
+        waypoint.pose.position.x = cells_met.cells[T-1].x
+        waypoint.pose.position.y = cells_met.cells[T-1].y
+        waypoint.pose.position.z = cells_met.cells[T-1].z
+
+        waypoint.pose.orientation.z = 0 #until we think of better way but fine for now
+    else:
+        waypoint.header.frame_id = 'map'
+        waypoint.pose.position.x = cells_met.cells[T-2].x
+        waypoint.pose.position.y = cells_met.cells[T-2].y
+        waypoint.pose.position.z = cells_met.cells[T-2].z
+        
+        waypoint.pose.orientation.z = 0 #until we think of better way but fine for now
     #rotate(-1.571)
     #driveStraight(.2,unit_cell)
     
@@ -592,7 +623,25 @@ def Left():
     global cells_met
     global currentPoint
     global cardinalDir
+    global goal
+    global waypoints
     
+    waypoint = PoseStamped()
+    T = len(cells_met.cells)
+    if(T == 0 or cells_met.cells[T-1] == goal):
+        waypoint.header.frame_id = 'map'
+        waypoint.pose.position.x = cells_met.cells[T-1].x
+        waypoint.pose.position.y = cells_met.cells[T-1].y
+        waypoint.pose.position.z = cells_met.cells[T-1].z
+        waypoint.pose.orientation.z = 0 #until we think of better way but fine for now
+    else:
+        waypoint.header.frame_id = 'map'
+        waypoint.pose.position.x = cells_met.cells[T-2].x
+        waypoint.pose.position.y = cells_met.cells[T-2].y
+        waypoint.pose.position.z = cells_met.cells[T-2].z
+        
+        waypoint.pose.orientation.z = 0 #until we think of better way but fine for now
+        
     currentPoint = left #tells us that we've moved on
     cardinalDir += 1
     if(cardinalDir > 4):
@@ -612,6 +661,9 @@ def Front():
     global cells_met
     global currentPoint
     global cardinalDir
+    global goal
+    global waypoints
+    
     
     currentPoint = front #tells us that we've moved on
     #print currentPoint.x
@@ -628,6 +680,24 @@ def Back():
     global cellPub
     global currentPoint
     global cardinalDir
+    global goal
+    global waypoints
+    
+    waypoint = PoseStamped()
+    T = len(cells_met.cells)
+    if(T == 0 or cells_met.cells[T-1] == goal):
+        waypoint.header.frame_id = 'map'
+        waypoint.pose.position.x = cells_met.cells[T-1].x
+        waypoint.pose.position.y = cells_met.cells[T-1].y
+        waypoint.pose.position.z = cells_met.cells[T-1].z
+        waypoint.pose.orientation.z = 0 #until we think of better way but fine for now
+    else:
+        waypoint.header.frame_id = 'map'
+        waypoint.pose.position.x = cells_met.cells[T-2].x
+        waypoint.pose.position.y = cells_met.cells[T-2].y
+        waypoint.pose.position.z = cells_met.cells[T-2].z
+        
+        waypoint.pose.orientation.z = 0 #until we think of better way but fine for now
     
     currentPoint = back #tells us that we've moved on
     cardinalDir += 2
@@ -768,8 +838,8 @@ def run():
     global occupiedCell #list of occupied cells
     global initPos
     global currentAngle
-    global goal_pose
-    #global goal
+    #global goal_pose
+    global goal
     global doneFlag
     global threshHold
     global pub
