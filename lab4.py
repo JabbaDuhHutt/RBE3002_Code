@@ -17,23 +17,23 @@ wheel_base = 0.23 #m
 
 
 def fullDrive():#suppose to take in an array of waypoints and navigate
-	global currentPoint
-	global done
-	global aFlag
-	global waypoints
-	tempArrays=[]
+    global currentPoint
+    global done
+    global aFlag
+    global waypoints
+    tempArrays=[]
     for index in range (0,len(waypoints)):
         tempArrays.append(waypoints[index])
         
     waypoints=[]
-	aFlag=False
-	for element  in tempArrays:
-		readCurrentPos()
-		if(aFlag):
-		    aSTAR(currentPoint,element.pose)
-		    aFlag=False
-		    fullDrive()
-		localNav(element,currentPoint)
+    aFlag=False
+    for element  in tempArrays:
+        readCurrentPos()
+        if(aFlag):
+	   aSTAR(currentPoint,element.pose)
+	   aFlag=False
+           fullDrive()
+        localNav(element,currentPoint)
 	print("All Way Points Reached!!!")
 
 
@@ -43,38 +43,38 @@ def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how
 	global aFlag
 	stuck = False
 	while not (currentPos.x==waypoint.pose.position.x and currentPos.y==waypoint.pose.position.y and currentPos.z==waypoint.pose.position.z) and not stuck and not done:
-		block = False
-		if(cellOccupied(waypoint.pose.position)):
-			aFlag = True
-			break
-    	checkArray=[]
-        elif(currentPos.x == waypoint.pose.position.x):
-            tempY = currentPos.y
-            tempYGoal=waypoint.pose.position.y
-            for temp in range (tempY, tempYGoal):
-                tempPoint = Point()
-                tempPoint.x=currentPos.x
-                tempPoint.y=temp
-                checkArray.append(cellOccupied(tempPoint))
+            block = False
+            checkArray=[]
+            if(cellOccupied(waypoint.pose.position)):
+                aFlag = True
+		break
+            elif(currentPos.x == waypoint.pose.position.x):
+                tempY = currentPos.y
+                tempYGoal=waypoint.pose.position.y
+                for temp in range (tempY, tempYGoal):
+                    tempPoint = Point()
+                    tempPoint.x=currentPos.x
+                    tempPoint.y=temp
+                    checkArray.append(cellOccupied(tempPoint))
                 for temp2 in checkArray:
                     if(temp2):
                         block = True
-        elif(currentPos.y==waypoint.pose.position.y):
-            tempX = currentPos.x
-            tempXGoal=waypoint.pose.position.x
-            for temp in range (tempX,tempXGoal):
-                tempPoint = Point()
-                tempPoint.x = temp
-                tempPoint.y = currentPos.y
-                checkArray.append(cellOccupied(tempPoint))
+            elif(currentPos.y==waypoint.pose.position.y):
+                tempX = currentPos.x
+                tempXGoal=waypoint.pose.position.x
+                for temp in range (tempX,tempXGoal):
+                    tempPoint = Point()
+                    tempPoint.x = temp
+                    tempPoint.y = currentPos.y
+                    checkArray.append(cellOccupied(tempPoint))
                 for temp2 in checkArray:
                     if(temp2):
                         block = True
-        if(block):
-            aSTAR(currentPos,waypoint.pose)
-            block=False
-            fullDrive()
-		navToPose(waypoint)
+            if(block):
+                aSTAR(currentPos,waypoint.pose)
+                block=False
+                fullDrive()
+            navToPose(waypoint)
 	print("Way Point Reached!!!")
 
 
