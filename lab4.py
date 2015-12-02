@@ -31,10 +31,8 @@ def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how
 	stuck = False
 	block = False
 	while not currentPos==waypoint and not stuck and not done:
-<<<<<<< HEAD
 		if(cellOccupied(waypoint)):
 			stuck = True
-=======
 	    	checkArray=[]
 	        if(currentPos.x == waypoint.x):
 	            tempY = currentPos.y
@@ -64,7 +62,6 @@ def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how
 		if(cellOccupied(waypoint)):
 		    stuck = True
 		    aSTAR(currentPos,waypoint)
->>>>>>> origin/master
 		readCurrentPos
 		currentPos=currentPoint
 		aSTAR(currentPos,waypoint)
