@@ -32,7 +32,6 @@ def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how
 	while not currentPos==waypoint and not stuck and not done:
 		if(cellOccupied(waypoint)):
 			stuck = True
-<<<<<<< HEAD
 	    	checkArray=[]
 	        if(currentPos.x == waypoint.x):
 	            tempY = currentPos.y
@@ -62,8 +61,6 @@ def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how
 		if(cellOccupied(waypoint)):
 		    stuck = True
 		    aSTAR(currentPos,waypoint)
-=======
->>>>>>> origin/master
 		readCurrentPos
 		currentPos=currentPoint
 		aSTAR(currentPos,waypoint)
@@ -389,8 +386,14 @@ def publishObjectCells(grid):
     global height
     global width
     global occupiedCells
+    global actualOccupiedCells
     k = 0
     b = 0
+    n = 0
+    actualOccupiedCells = GridCells()
+    actualOccupiedCells.header.frame_id = 'local'
+    actualOccupiedCells.cell_width = 1
+    actualOccupiedCells.cell_height = 1
     occupiedCells = GridCells()
     occupiedCells.header.frame_id = 'map'
     occupiedCells.cell_width = 0.05 #change based off grid size
@@ -409,6 +412,14 @@ def publishObjectCells(grid):
                 occupiedCells.cells.append(point)
     
     pubGCell.publish(occupiedCells)
+    for i in range(1,len(occupiedCells)):
+        tempCell = Point()
+        tempCell.x=int(occupiedCells.x)/20
+        tempCell.y=int(occupiedCells.y)/20
+        tempCell.z=0
+        if(actualOccupiedCells.index(tempCell)<0):
+            actualOccupiedCells.cells.append(tempCell)
+    
     
     Cells = GridCells()
     Cells.header.frame_id = 'map'
@@ -423,8 +434,8 @@ def publishObjectCells(grid):
             #print b # used for debugging
             if (grid[b] == 0):
                 point1=Point()
-                point1.x=j*.3 # edit for grid size
-                point1.y=i*.3 # edit for grid size
+                point1.x=j*.5 # edit for grid size
+                point1.y=i*.5 # edit for grid size
                 point1.z=0
                 Cells.cells.append(point1)
     
@@ -525,8 +536,9 @@ def mrRogers(current):
 def cellOccupied(cell):
     global occupiedCells
     global cellThresh
+    global actualOccupiedCells
     #for each occupiedCell compare the point to point that was passed in
-    for occupied in occupiedCells.cells:
+    for occupied in actualOccupiedCells.cells:
         if((math.fabs(occupied.x - cell.x) < cellThresh) and (math.fabs(occupied.y - cell.y) < cellThresh) and (math.fabs(occupied.z - cell.z) < cellThresh)): #break up for debug if not equating 
             return True
         else:
