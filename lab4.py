@@ -29,10 +29,10 @@ def fullDrive(waypoints):#suppose to take in an array of waypoints and navigate
 def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how the Slam gmapping works
 	global done
 	stuck = False
-	block = False
 	while not currentPos==waypoint and not stuck and not done:
 		if(cellOccupied(waypoint)):
 			stuck = True
+<<<<<<< HEAD
 	    	checkArray=[]
 	        if(currentPos.x == waypoint.x):
 	            tempY = currentPos.y
@@ -62,6 +62,8 @@ def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how
 		if(cellOccupied(waypoint)):
 		    stuck = True
 		    aSTAR(currentPos,waypoint)
+=======
+>>>>>>> origin/master
 		readCurrentPos
 		currentPos=currentPoint
 		aSTAR(currentPos,waypoint)
@@ -184,9 +186,6 @@ def aSTAR(start,goal):
             doneFlag = True
             print "HUGH LOW"
             break
-        print "PLEASE"
-        print currentPoint.x
-        print currentPoint.y
         mrRogers(currentPoint)
         if(not cellOccupied(front)):#im adding not cause I think I did logic wrong
             costFront=1
@@ -279,6 +278,7 @@ def readWorldMap(data):
     global height
     grid = data
     mapData = data.data
+    print data.info.resolution
     width = data.info.width
     height = data.info.height
     
@@ -393,8 +393,8 @@ def publishObjectCells(grid):
     b = 0
     occupiedCells = GridCells()
     occupiedCells.header.frame_id = 'map'
-    occupiedCells.cell_width = 0.3 #change based off grid size
-    occupiedCells.cell_height = 0.3 #change based off grid size
+    occupiedCells.cell_width = 0.05 #change based off grid size
+    occupiedCells.cell_height = 0.05 #change based off grid size
     
     for i in range(1,height): #height should be set to hieght of grid
         k=k+1
@@ -403,8 +403,8 @@ def publishObjectCells(grid):
             #print k # used for debugging
             if (grid[k] == 100):
                 point=Point()
-                point.x=j*.3 # edit for grid size
-                point.y=i*.3 # edit for grid size
+                point.x=j*.05 # edit for grid size
+                point.y=i*.05 # edit for grid size
                 point.z=0
                 occupiedCells.cells.append(point)
     
@@ -412,8 +412,8 @@ def publishObjectCells(grid):
     
     Cells = GridCells()
     Cells.header.frame_id = 'map'
-    Cells.cell_width = 0.3 #change based off grid size
-    Cells.cell_height = 0.3 #change based off grid size
+    Cells.cell_width = 0.05 #change based off grid size
+    Cells.cell_height = 0.05 #change based off grid size
     
     for i in range(1,height): #height should be set to hieght of grid
 
@@ -432,7 +432,7 @@ def publishObjectCells(grid):
 #adjusts global neighbors to current neighbors
 def mrRogers(current):
     #global pose #dont think this needs to be here
-    global currentPoint
+    #global currentPoint
     global front
     global left
     global right
@@ -442,77 +442,83 @@ def mrRogers(current):
     global height
     global width
     
+    x = current.x
+    y = current.y
     print "Will you be my neighbor"
     if(cardinalDir == 1):
-        front.x = current.x
-        front.y = current.y + unit_cell
+        front.x = y
+        front.y = x + unit_cell
         front.z = 0
         print "front neighbor found"
-        left.x = current.x - unit_cell #if point gets negative then off map do something to deal with this
-        left.y = current.y
+        left.x = x - unit_cell #if point gets negative then off map do something to deal with this
+        left.y = y
         left.z = 0
         print "left neighbor found"
-        back.x = current.x
-        back.y = current.y - unit_cell
+        back.x = x
+        back.y = y - unit_cell
         back.z = 0
         print "back neighbor found"
-        right.x = current.x + unit_cell
-        right.y = current.y
+        right.x = x + unit_cell
+        right.y = y
         right.z = 0
         print "right neighbor found"
     elif(cardinalDir == 2):
-        front.x = current.x - unit_cell
-        front.y = current.y
+        front.x = x - unit_cell
+        front.y = y
         front.z = 0
+        print "PLEASE"
+        print x
+        print y
         print "front neighbor found"
-        left.x = current.x
-        left.y = current.y - unit_cell
+        left.x = x
+        left.y = y
+        left.y -= unit_cell
         left.z = 0
         print "left neighbor found"
-        back.x = current.x + unit_cell
-        back.y = current.y 
+        back.x = x + unit_cell
+        back.y = y 
         back.z = 0
         print "back neighbor found"
-        right.x = current.x
-        right.y = current.y + unit_cell
+        right.x = x
+        right.y = y + unit_cell
         right.z = 0
-        print current.x
-        print current.y
+        print x
+        print y
         print right.x
         print right.y
         print "right neighbor found"
     elif(cardinalDir == 3):
-        front.x = current.x
-        front.y = current.y - unit_cell
+        front.x = x
+        front.y = y - unit_cell
         front.z = 0
         print "front neighbor found"
-        left.x = current.x + unit_cell
-        left.y = current.y
+        left.x = x + unit_cell
+        left.y = y
         left.z = 0
         print "left neighbor found"
-        back.x = current.x
-        back.y = current.y + unit_cell
+        back.x = x
+        back.y = y + unit_cell
         back.z = 0
         print "back neighbor found"
-        right.x = current.x - unit_cell
-        right.y = current.y
+        right.x = x - unit_cell
+        right.y = y
         right.z = 0
         print "right neighbor found"
     else:
-        front.x = current.x + unit_cell
-        front.y = current.y
+        front.x = x + unit_cell
+        front.y = y
         front.z = 0
         print "front neighbor found"
-        left.x = current.x
-        left.y = current.y + unit_cell
+        left.x = x
+        left.y = y + unit_cell
         left.z = 0
         print "left neighbor found"
-        back.x = current.x - unit_cell
-        back.y = current.y 
+        back.x = x - unit_cell
+        back.y = y 
         back.z = 0
         print "back neighbor found"
-        right.x = current.x
-        right.y = current.y - unit_cell
+        right.x = x
+        right.y = y - unit_cell
         right.z = 0
         print "right neighbor found"
 #takes cell of point() and returns whether the cell is occupied or not
@@ -564,9 +570,7 @@ def Right():
     cardinalDir -= 1
     if(cardinalDir < 1):
         cardinalDir = 4
-    print "MEEEE"
-    print currentPoint.x
-    print currentPoint.y    
+        
     cells_met.cells.append(right)
     cellPub.publish(cells_met)
 #progresses to left cell
@@ -736,7 +740,7 @@ def readOdom(msg):
     odom_tf.sendTransform((pose.pose.position.x, pose.pose.position.y, 0), (pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w), rospy.Time.now(), "base_footprint","odom")
     
 def run():
-    global worldMap
+    global mapData
     #global start
     global target
     global front
