@@ -389,7 +389,6 @@ def publishObjectCells(grid):
     global actualOccupiedCells
     k = 0
     b = 0
-    n = 0
     actualOccupiedCells = GridCells()
     actualOccupiedCells.header.frame_id = 'local'
     actualOccupiedCells.cell_width = 1
