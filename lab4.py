@@ -78,6 +78,7 @@ def localNav(waypoint,currentPos):#suppose to do a local A* but I'm not sure how
                 block=False
                 fullDrive()
             navToPose(waypoint)
+            stuck = True
 	print("Way Point Reached!!!")
 
 
@@ -310,18 +311,19 @@ def readGoal(msg):
     yEnd = py
     thetaEnd = yaw * 180.0 / math.pi
     goal = Pose();
-    goal.position.x = px
-    goal.position.y = py
+    goal.position.x = round(px)
+    goal.position.y = round(py)
     goal.position.z = 0
+    
     
     
     #create waypoints
     waypoints = []
     #begin aSTAR
     aSTAR(initPos,goal)
-    #fullDrive()
-    for i in range (0, len(waypoints)):
-        navToPose(waypoints[i])
+    fullDrive()
+    #for i in range (0, len(waypoints)):
+    #    navToPose(waypoints[i])
     print "You did it Dora"
     #print waypoints[(len(waypoints)-1)].pose.position.x   
     #print waypoints[(len(waypoints)-1)].pose.position.y
@@ -431,10 +433,12 @@ def publishObjectCells(grid):
     pubGCell.publish(occupiedCells)
     for i in range(1,len(occupiedCells.cells)):
         tempCell = Point()
-        tempCell.x=int(occupiedCells.cells[i].x)/20
-        tempCell.y=int(occupiedCells.cells[i].y)/20
+        tempCell.x=int((occupiedCells.cells[i].x/20))
+        tempCell.y=int((occupiedCells.cells[i].y/20))
         tempCell.z=0
-        if(tempCell in actualOccupiedCells.cells):
+        
+        
+        if(tempCell not in actualOccupiedCells.cells):
             actualOccupiedCells.cells.append(tempCell)
     
     
