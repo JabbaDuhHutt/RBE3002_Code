@@ -28,6 +28,47 @@ wheel_rad  = 0.035  #m
 
 wheel_base = 0.23 #m
 
+
+
+rows=10
+columns=10
+fullmapGridExplored = [[-1 for x in range(rows)] for x in range(columns)]
+
+
+def frontier(fullmapGridExplored):
+	global currentPoint
+	smallestCostCell = Point()
+	smallestCostCell.x = 10000
+	smallestCostCell.y = 10000
+	smallestCostCell.z=0
+	smallestDistance =10000
+	for i in range(0,rows):
+		for j in range(0,columns):
+			amount =0
+			if(fullmapGridExplored[i][j] > 0 and fullmapGridExplored[i][j]<9000):
+				if(not i==0):
+					if(fullmapGridExplored[i-1][j]==-1):
+						amount= amount+1
+				if(not j==0):
+					if(fullmapGridExplored[i][j-1]==-1):
+						amount= amount+1
+				if(not i==columns):
+					if(fullmapGridExplored[i+1][j]):
+						amount= amount+1
+				if(not j==rows):
+					if(fullmapGridExplored[i][j+1]):
+						amount= amount+1
+				if(amount>0):
+					#put cells in arrayOfFrontires
+	for element in arrayOfFrontires:#create array of frontiers at some point
+		if(heuristic(currentPoint,element)<smallestDistance):
+			smallestCostCell.x = element.x
+			smallestCostCell.y = element.y
+			smallestDistance = heuristic(currentPoint,element)
+	localNav(smallestCostCell,currentPoint) #publish instead
+
+
+
 #A *
 
 def aSTAR(start,goal):
