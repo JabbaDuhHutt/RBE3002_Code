@@ -192,6 +192,9 @@ def readWorldMap(data):
     global width
 
     global height
+    global origin
+    
+    origin = data.info.origin
 
     grid = data
 
@@ -200,6 +203,14 @@ def readWorldMap(data):
     width = data.info.width
 
     height = data.info.height
+def pointConversionToGmapping(pose):
+    global origin
+    
+    newPose = Pose()
+    newPose.position.x = pose.position.x + origin.position.x
+    newPose.position.y = pose.position.y + origin.position.y
+    newPose.orientation.z = pose.orientation.z + pose.orientation.z #i think this is right + over -
+     
     #set cardinalDir based off start angle direction
 
 def readCurrentPos():
@@ -934,7 +945,7 @@ def run():
 
     global currentAngle
 
-    #global goal_pose
+    global origin
 
     global goal
 
@@ -959,6 +970,7 @@ def run():
     
     width = 0
     height = 0
+    origin = Pose();
 
     unit_cell = 0.5 #m
 
@@ -992,10 +1004,6 @@ def run():
     
 
     initPos = PoseStamped();
-
-    #goal = Point();
-
-    #start = PoseStamped();
 
     
 
