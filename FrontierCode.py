@@ -27,6 +27,9 @@ def initializeFrontiers():
 	global back
 	global visited
 	global frontier_flag
+	global frontier_list
+
+	frontier_list = []
 
 #move current point to local
 	readCurrentPos()
@@ -37,8 +40,12 @@ def initializeFrontiers():
 	startPoint.x = cx
 	startPoint.y = cy
 
+	visited = []
+	frontier_flag = []
+
 	bfs = Queue()
 	bfs.put(startPoint)
+
 	while (!bfs.empty()):
 		#sets current point of iterations and removes from queue
 		point = bfs.get()
@@ -56,13 +63,29 @@ def initializeFrontiers():
 		nbr.append(lx)
 		nbr.append(bx)
 
-		visted = []
+		
 
 		for x in nbr:
-			t = len(visted)
-			if(!cellOccupied(x) and !visted()){
-				
-			}
+			t = len(visited)
+			if(!cellOccupied(x) and !visited(x, t)):
+				visited.append(x) #marks cell as visited
+				bfs.put(x) #places in search so we can look at its surroundings
+			elif(isNewFrontierCell(x)):
+				frontier_flag.append(x) #marks cell as frontier
+				new_frontier = buildNewFrontier(x)
+				if(new_frontier.size > 1):
+					n = len(frontier_list) - 1
+					frontier_list.insert(n, new_frontier) #puts frontier at the end of the list
+
+	return frontier_list #might not do this because node might just shot accros but will do for now
+
+
+#returns true if the cell is a new frontier cell
+def isNewFrontierCell(cell):
+
+#builds new frontier based on given cell
+def buildNewFrontier(cell):
+
 
 
 def pointConversionToGmapping(pose):
@@ -355,3 +378,59 @@ def mrRogers(current):
         right.z = 0
 
         print "right neighbor found"
+#checks to see if cell is occupied
+def cellOccupied(cell):
+    global occupiedCells
+
+    global cellThresh
+
+    global actualOccupiedCells
+
+    #for each occupiedCell compare the point to point that was passed in
+
+    for occupied in actualOccupiedCells.cells:
+
+        if((math.fabs(occupied.x - cell.x) < cellThresh) and (math.fabs(occupied.y - cell.y) < cellThresh) and (math.fabs(occupied.z - cell.z) < cellThresh)): #break up for debug if not equating 
+
+            return True
+
+        else:
+
+            return False
+# param: cell is used to tell if it in the visited list
+# param: lenght is used to tell if visited is empty and if so just return false
+def visited(cell, length):
+    global visited
+
+
+    #check visited for "cell"
+    #if cell has been visited return true
+    if(length <= 0):
+    	for occupied in visited:
+
+	        if((occupied.x == cell.x) and (occupied.y == cell.y) and (occupied.z == cell.z)):
+
+	            return True
+
+	        else:
+
+	            return False
+	else:
+		return False
+#takes a cell and determines if it has been marked as a frontier_flag
+def frontier_flag(cell):
+	global frontier_flag
+
+
+    #check frontier_flag for "cell"
+    #if cell has been marked as a frontier return true
+
+    for frontier in frontier_flag:
+
+        if((frontier.x == cell.x) and (frontier.y == cell.y) and (frontier.z == cell.z)):
+
+            return True
+
+        else:
+
+            return False
