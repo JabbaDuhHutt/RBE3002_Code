@@ -93,9 +93,9 @@ def aSTAR(start,goal):
 
     cells_met.header.frame_id = 'map'
 
-    cells_met.cell_width = 0.5 #m #change based off grid size
+    cells_met.cell_width = 1 #m #change based off grid size
 
-    cells_met.cell_height = 0.5 #m #change based off grid size
+    cells_met.cell_height = 1 #m #change based off grid size
 
     #startPos = start.pose.position
 
@@ -135,25 +135,25 @@ def aSTAR(start,goal):
 
         if(not cellOccupied(front)):#im adding not cause I think I did logic wrong
 
-            costFront=0.5
+            costFront=1
 
             costFront+=heuristic(front,goalPos)
 
         if(not cellOccupied(back)):
 
-            costBack=0.5
+            costBack=1
 
             costBack+=heuristic(back,goalPos)
 
         if(not cellOccupied(left)):
 
-            costLeft=0.5
+            costLeft=1
 
             costLeft+=heuristic(left,goalPos)
 
         if(not cellOccupied(right)):
 
-            costRight=0.5
+            costRight=1
 
             costRight+=heuristic(right,goalPos)
 
@@ -322,22 +322,22 @@ def readCurrentPos():
 
         print "Angle off or threshHold too low"
 
-    #set to currentPoint
-    if((x - 0.25) < 0):
-        correctX = round(x) + 0.25
-    else:
-        correctX = round(x) - 0.25
+    # #set to currentPoint
+    # if((x - 0.25) < 0):
+    #     correctX = round(x) + 0.25
+    # else:
+    #     correctX = round(x) - 0.25
     
-    if((y - 0.25) < 0):
-        correctY = round(y) + 0.25
-    else:
-        correctY = round(y) - 0.25
+    # if((y - 0.25) < 0):
+    #     correctY = round(y) + 0.25
+    # else:
+    #     correctY = round(y) - 0.25
 
     currentPoint = Point(); #might need to change to pose if neighbors dont work out when looking different directions
 
-    currentPoint.x = correctX
+    currentPoint.x = x
 
-    currentPoint.y = correctY
+    currentPoint.y = y
 
     currentPoint.z = 0
 #adjusts global neighbors to current neighbors
@@ -1013,7 +1013,7 @@ def run():
     height = 0
     origin = Pose();
 
-    unit_cell = 0.5 #m
+    unit_cell = 1 #m
 
     AMap = 0
 
