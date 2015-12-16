@@ -10,6 +10,8 @@ from nav_msgs.msg import OccupancyGrid, GridCells, Path, Odometry
 
 from geometry_msgs.msg import Point, Pose, PoseStamped, Twist, PoseWithCovarianceStamped, Quaternion
 
+from actionlib_msgs.msg import GoalStatusArray
+
 from tf.transformations import euler_from_quaternion
 
 import tf
@@ -185,7 +187,9 @@ def pointConversionToGmapping(pose):
     newPose = Pose()
     newPose.position.x = pose.position.x + origin.position.x
     newPose.position.y = pose.position.y + origin.position.y
-    newPose.orientation.z = pose.orientation.z + pose.orientation.z #i think this is right + over -
+    newPose.orientation.z = pose.orientation.z + origin.orientation.z #i think this is right + over -
+
+    return newPose
      
 def pointConversionToReferrence(pose):
     global origin
@@ -193,7 +197,10 @@ def pointConversionToReferrence(pose):
     newPose = Pose()
     newPose.position.x = pose.position.x - origin.position.x
     newPose.position.y = pose.position.y - origin.position.y
-    newPose.orientation.z = pose.orientation.z - pose.orientation.z #i think this is right + over -
+    newPose.orientation.z = pose.orientation.z - origin.orientation.z #i think this is right + over -
+
+    return newPose
+
 #read map data
 
 def readWorldMap(data):
@@ -216,6 +223,8 @@ def readWorldMap(data):
     width = data.info.width
 
     height = data.info.height
+
+    publishObjectCells(mapData)
 
 def readCurrentPos():
 
@@ -304,6 +313,58 @@ def readCurrentPos():
     currentPoint.y = y
 
     currentPoint.z = 0
+def statusReader(msg):
+    global move_status
+
+    #gets status array
+    move_status = msg.status_List
+
+def initialSpin():
+    global currentPoint
+    global frontier_list
+    global pubMove
+    global move_status
+
+    readCurrentPos()
+
+    move1 = PoseStamped()
+    move1.header.frame_id = 'map'
+    move1.pose.position.x = currentPoint.x
+    move1.pose.position.y = currentPoint.y
+    move1.pose.orientation.z = 6.283
+
+    pubMove.publish(move1)
+
+    rospy.sleep(5.)
+
+    i = 0
+    frontiers = searchFrontiers()
+
+    for frontier in frontiers:
+        #pose of given centroid
+        frontierConvert = Pose()
+        frontierConvert.position.x = frontier.centroid.x
+        frontierConvert.position.y = frontier.centroid.y
+        #convert to gmapping (if occupancy grid is how we hope)
+        goal = pointConversionToGmapping(frontierConvert)
+
+
+        tempPose = PoseStamped()
+        tempPose.header.frame_id = 'map'
+        tempPose.pose.position.x = goal.position.x
+        tempPose.pose.position.y = goal.position.y
+        #publish posestamp messave to move stack
+        pubMove.publish(tempPose)
+
+        wait = 0
+        while ((move_status[i] not = 3)):
+            #chill
+            print "Waiting for nav to finish"
+            wait += 1
+            #set wait to time out nav after certain time
+            if(wait>=20000):
+                print "Nav failed"
+                break
 
 #generates nbhood4 for "current"
 def mrRogers(current):
@@ -687,3 +748,207 @@ class Frontier:
 		self.size= size
 		self.min_distance = min_distance
 		self.middle = Point()
+
+def run():
+
+    global mapData
+
+    #global start
+
+    #global target
+
+    global front
+    global frontLeft
+    global left
+    global frontRight
+    global right
+    global backRight
+    global back
+    global backLeft
+
+    global move_status
+
+    global odom_tf
+
+    global odom_list
+
+    global pose
+
+    global unit_cell
+
+    global currentTheta #theta of current robot to map
+
+    global currentPoint #might need to change to pose if neighbors dont work out
+
+    global cardinalDir #direction robot is facing in respect to global map (1 is +y , 2 is -x, 3 is -y, 4 is +x)
+
+    global occupiedCell #list of occupied cells
+    global actual
+
+    global initPos
+
+    global currentAngle
+
+    global origin
+
+    global goal
+
+    global doneFlag
+
+    global threshHold
+
+    global pub
+
+    global pubGCell
+
+    global unknownCell
+
+    global cellPub
+
+    global cellThresh
+
+    global cells_met
+    global width
+
+    global height
+    
+    width = 0
+    height = 0
+    origin = Pose();
+
+    unit_cell = 1 #m
+
+    AMap = 0
+
+    worldMap = 0
+
+    path = 0
+
+    mapData = 0
+    
+
+    move_status = []
+
+    currentAngle = 0 #radians
+
+    cardinalDir = 1
+
+    cellThresh = .2 #m
+
+    threshHold = 3 #degrees?
+
+    doneFlag = False
+
+    front = Point();
+
+    left = Point();
+
+    right = Point(); 
+
+    back = Point(); #might need to change depending on cells
+
+    
+
+    initPos = PoseStamped();
+
+    
+
+    rospy.init_node('lab3')
+
+    
+
+    #subscribers
+
+    worldMapSub = rospy.Subscriber('/map', OccupancyGrid, readWorldMap)
+
+    #markerSub = rospy.Subscriber('/move_base_simple/goal', PoseStamped, readGoal)
+
+    odomSub = rospy.Subscriber('/odom', Odometry, readOdom)
+
+    subMove = rospy.Subscriber('/move_base/status', GoalStatusArray, statusReader)
+
+    
+
+    #publishers
+
+    #pubGCell = rospy.Publisher('/grid_check', GridCells, queue_size=1)
+
+    pubMove = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size = 1)
+
+    #cellPub = rospy.Publisher('/cell_path', GridCells, queue_size = 100)
+
+    #pathPub = rospy.Publisher('/path_path', Path, queue_size = 1)
+
+    #unknownCell = rospy.Publisher('/grid_unknown', GridCells, queue_size=1)
+
+    
+
+    #listener/broadcaster might not be needed but here
+
+    odom_list = tf.TransformListener()
+
+    odom_tf = tf.TransformBroadcaster()
+
+    
+
+    odom_tf.sendTransform((0, 0, 0),(0, 0, 0, 1),rospy.Time.now(),"map","base_footprint")
+
+    
+
+    sleeper = rospy.Duration(1)
+
+    rospy.sleep(sleeper)
+
+    
+
+    target = 0
+
+    start = 0
+
+    end = 0
+
+
+
+    while not rospy.is_shutdown():
+
+        print("starting")
+
+        #odom_tf.sendTransform((0, 0, 0),(0, 0, 0, 1),rospy.Time.now(),"map","base_footprint")
+
+        #publishObjectCells(mapData)
+        #testPoint = Point()
+        #testPoint.x = 0
+        #testPoint.y = 3
+        #testPoint.z = 0
+        
+        #x = actualOccupiedCells.cells
+        #print x
+        
+
+        #driveStraight(.2, 1)
+
+        print("waiting")
+
+        rospy.loginfo("Waiting...")
+
+        rospy.spin() 
+
+        #rospy.is_shutdown()
+
+
+
+
+
+
+
+    
+
+if __name__ == '__main__':
+
+    try:
+
+        run()
+
+    except rospy.ROSInterruptException:
+
+        pass
