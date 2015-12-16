@@ -478,8 +478,8 @@ def mrRogers(current):
     y = current.y
     print "Will you be my neighbor"
     if(cardinalDir == 1):
-        front.x = y
-        front.y = x + unit_cell
+        front.x = x
+        front.y = y + unit_cell
         front.z = 0
         print "front neighbor found"
         left.x = x - unit_cell #if point gets negative then off map do something to deal with this

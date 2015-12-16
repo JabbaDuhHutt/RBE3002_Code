@@ -374,9 +374,9 @@ def mrRogers(current):
 
     if(cardinalDir == 1):
 
-        front.x = y
+        front.x = x
 
-        front.y = x + unit_cell
+        front.y = y + unit_cell
 
         front.z = 0
 

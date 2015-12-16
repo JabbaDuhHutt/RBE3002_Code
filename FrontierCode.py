@@ -19,8 +19,9 @@ import numpy
 import math 
 
 #intializes search by taking in current position
-def initializeFrontiers():
+def searchFrontiers():
 	global currentPoint
+	#global cardinalDir
 	global front
 	global right
 	global left
@@ -28,6 +29,8 @@ def initializeFrontiers():
 	global visited
 	global frontier_flag
 	global frontier_list
+
+	#cardinalDir = 1
 
 	frontier_list = []
 
@@ -46,7 +49,7 @@ def initializeFrontiers():
 	bfs = Queue()
 	bfs.put(startPoint)
 
-	while (!bfs.empty()):
+	while (not bfs.empty()):
 		#sets current point of iterations and removes from queue
 		point = bfs.get()
 		#run get nbhood4 for currentPoint
@@ -67,7 +70,7 @@ def initializeFrontiers():
 
 		for x in nbr:
 			t = len(visited)
-			if(!cellOccupied(x) and !visited(x, t)):
+			if(((not cellOccupied(x)) and (not unknownSpace(x))) and  not visited(x, t)):
 				visited.append(x) #marks cell as visited
 				bfs.put(x) #places in search so we can look at its surroundings
 			elif(isNewFrontierCell(x)):
@@ -82,7 +85,29 @@ def initializeFrontiers():
 
 #returns true if the cell is a new frontier cell
 def isNewFrontierCell(cell):
+	global front
+	global back
+	global right
+	global left
+	global currentPoint
 
+	readCurrentPos()
+
+	if(not unknownSpace(cell) or frontier_flag(cell)):
+		return False
+	
+	#make list of neighbor to currentPoint
+	nbr = []
+	nbr.append(fx)
+	nbr.append(rx)
+	nbr.append(lx)
+	nbr.append(bx)
+
+	for x in nbr:
+		if(unknownSpace(x)):
+			return True
+			
+	return False
 #builds new frontier based on given cell
 def buildNewFrontier(cell):
 
@@ -241,143 +266,143 @@ def mrRogers(current):
 
     print "Will you be my neighbor"
 
-    if(cardinalDir == 1):
+    #if(cardinalDir == 1):
 
-        front.x = y
+    front.x = x
 
-        front.y = x + unit_cell
+    front.y = y + unit_cell
 
-        front.z = 0
+    front.z = 0
 
-        print "front neighbor found"
+    print "front neighbor found"
 
-        left.x = x - unit_cell #if point gets negative then off map do something to deal with this
+    left.x = x - unit_cell #if point gets negative then off map do something to deal with this
 
-        left.y = y
+    left.y = y
 
-        left.z = 0
+    left.z = 0
 
-        print "left neighbor found"
+    print "left neighbor found"
 
-        back.x = x
+    back.x = x
 
-        back.y = y - unit_cell
+    back.y = y - unit_cell
 
-        back.z = 0
+    back.z = 0
 
-        print "back neighbor found"
+    print "back neighbor found"
 
-        right.x = x + unit_cell
+    right.x = x + unit_cell
 
-        right.y = y
+    right.y = y
 
-        right.z = 0
+    right.z = 0
 
-        print "right neighbor found"
+    print "right neighbor found"
 
-    elif(cardinalDir == 2):
+    # elif(cardinalDir == 2):
 
-        front.x = x - unit_cell
+    #     front.x = x - unit_cell
 
-        front.y = y
+    #     front.y = y
 
-        front.z = 0
+    #     front.z = 0
 
-        print "front neighbor found"
+    #     print "front neighbor found"
 
-        left.x = x
+    #     left.x = x
 
-        left.y = y
+    #     left.y = y
 
-        left.y -= unit_cell
+    #     left.y -= unit_cell
 
-        left.z = 0
+    #     left.z = 0
 
-        print "left neighbor found"
+    #     print "left neighbor found"
 
-        back.x = x + unit_cell
+    #     back.x = x + unit_cell
 
-        back.y = y 
+    #     back.y = y 
 
-        back.z = 0
+    #     back.z = 0
 
-        print "back neighbor found"
+    #     print "back neighbor found"
 
-        right.x = x
+    #     right.x = x
 
-        right.y = y + unit_cell
+    #     right.y = y + unit_cell
 
-        right.z = 0
+    #     right.z = 0
 
-        print "right neighbor found"
+    #     print "right neighbor found"
 
-    elif(cardinalDir == 3):
+    # elif(cardinalDir == 3):
 
-        front.x = x
+    #     front.x = x
 
-        front.y = y - unit_cell
+    #     front.y = y - unit_cell
 
-        front.z = 0
+    #     front.z = 0
 
-        print "front neighbor found"
+    #     print "front neighbor found"
 
-        left.x = x + unit_cell
+    #     left.x = x + unit_cell
 
-        left.y = y
+    #     left.y = y
 
-        left.z = 0
+    #     left.z = 0
 
-        print "left neighbor found"
+    #     print "left neighbor found"
 
-        back.x = x
+    #     back.x = x
 
-        back.y = y + unit_cell
+    #     back.y = y + unit_cell
 
-        back.z = 0
+    #     back.z = 0
 
-        print "back neighbor found"
+    #     print "back neighbor found"
 
-        right.x = x - unit_cell
+    #     right.x = x - unit_cell
 
-        right.y = y
+    #     right.y = y
 
-        right.z = 0
+    #     right.z = 0
 
-        print "right neighbor found"
+    #     print "right neighbor found"
 
-    else:
+    # else:
 
-        front.x = x + unit_cell
+    #     front.x = x + unit_cell
 
-        front.y = y
+    #     front.y = y
 
-        front.z = 0
+    #     front.z = 0
 
-        print "front neighbor found"
+    #     print "front neighbor found"
 
-        left.x = x
+    #     left.x = x
 
-        left.y = y + unit_cell
+    #     left.y = y + unit_cell
 
-        left.z = 0
+    #     left.z = 0
 
-        print "left neighbor found"
+    #     print "left neighbor found"
 
-        back.x = x - unit_cell
+    #     back.x = x - unit_cell
 
-        back.y = y 
+    #     back.y = y 
 
-        back.z = 0
+    #     back.z = 0
 
-        print "back neighbor found"
+    #     print "back neighbor found"
 
-        right.x = x
+    #     right.x = x
 
-        right.y = y - unit_cell
+    #     right.y = y - unit_cell
 
-        right.z = 0
+    #     right.z = 0
 
-        print "right neighbor found"
+    #     print "right neighbor found"
 #checks to see if cell is occupied
 def cellOccupied(cell):
     global occupiedCells
@@ -434,3 +459,94 @@ def frontier_flag(cell):
         else:
 
             return False
+#checks to see if cell unknown
+def unknownSpace(cell):
+	global UnknownSpace
+
+	for unknown in UnknownSpace.cells:
+		if((math.fabs(unknown.x - cell.x) < cellThresh) and (math.fabs(unknown.y - cell.y) < cellThresh) and (math.fabs(unknown.z - cell.z) < cellThresh)): #break up for debug if not equating 
+
+            return True
+
+        else:
+
+            return False
+	
+#publish or just get grid cells that have obstacle with x,y location
+#FIXED
+def publishObjectCells(grid):
+    global pubGCell
+    #global unknownCell
+    global UnknownSpace
+    global height
+    global width
+    global occupiedCells
+    global actualOccupiedCells
+    k = 0
+    b = 0
+    actualOccupiedCells = GridCells()
+    actualOccupiedCells.header.frame_id = 'local'
+    actualOccupiedCells.cell_width = 1
+    actualOccupiedCells.cell_height = 1
+    occupiedCells = GridCells()
+    occupiedCells.header.frame_id = 'map'
+    occupiedCells.cell_width = 0.05 #change based off grid size
+    occupiedCells.cell_height = 0.05 #change based off grid size
+    
+    for i in range(1,height): #height should be set to hieght of grid
+        k=k+1
+        for j in range(1,width): #height should be set to hieght of grid
+            k=k+1
+            #print k # used for debugging
+            if (grid[k] == 100):
+                point=Point()
+                point.x=j*.05 # edit for grid size
+                point.y=i*.05 # edit for grid size
+                point.z=0
+                occupiedCells.cells.append(point)
+    
+    pubGCell.publish(occupiedCells)
+
+    for i in range(0, len(occupiedCells.cells) - 1):
+        tempCell = Point()
+        tempCell.x=int((occupiedCells.cells[i].x/20))
+        tempCell.y=int((occupiedCells.cells[i].y/20))
+        tempCell.z=0
+        
+        
+        if(tempCell not in actualOccupiedCells.cells):
+            actualOccupiedCells.cells.append(tempCell)
+    
+    
+    Cells = GridCells()
+    Cells.header.frame_id = 'map'
+    Cells.cell_width = 0.05 #change based off grid size
+    Cells.cell_height = 0.05 #change based off grid size
+    UnknownSpace = GridCells()
+    UnknownSpace.header.frame_id = 'map'
+    UnknownSpace.cell_width = 1 #m
+    UnknownSpace.cell_height = 1 #m
+    
+    for i in range(1,height): #height should be set to hieght of grid
+
+        b=b+1
+        for j in range(1,width): #height should be set to hieght of grid
+            b=b+1
+            #print b # used for debugging
+            #-1 means unknown
+            if (grid[b] == -1):
+                point1=Point()
+                point1.x=j*.05 # edit for grid size
+                point1.y=i*.05 # edit for grid size
+                point1.z=0
+                Cells.cells.append(point1)
+    
+    for i in range(0, len(Cells.cells) - 1):
+    	unknown = Point()
+    	unknown.x = int((Cells.cells[i].x/20))
+    	unknown.y = int((Cells.cells[i].y/20))
+    	unknown.z = 0
+
+    	if(tempCell not in ):
+            UnknownSpace.cells.append(unknown)
+    #unknownCell.publish(Cells)
