@@ -62,9 +62,10 @@ def searchFrontiers():
     bfs = Queue.Queue()
     bfs.put(startPoint)
 
-    while (not bfs.empty()):
+    while ((not bfs.empty()) or (not rospy.is_shutdown())):
         #sets current point of iterations and removes from queue
         point = bfs.get()
+        print point
         #run get nbhood4 for currentPoint
         mrRogers(point)
         #make list of neighbor to currentPoint
@@ -78,8 +79,9 @@ def searchFrontiers():
         nbr.append(rx)
         nbr.append(lx)
         nbr.append(bx)
-
         
+        print "LIST of Visited"
+        print visitedList
 
         for x in nbr:
             t = len(visitedList)
@@ -337,19 +339,27 @@ def initialSpin():
     global UnknownSpace
 
     readCurrentPos()
+    
+    #move1 = PoseStamped()
+    #move1.header.frame_id = 'map'
+    #move1.pose.position.x = currentPoint.x + .1
+    #move1.pose.position.y = currentPoint.y + .1
+    #move1.pose.orientation.z = 0
+    
+    #pubMove.publish(move1)
+    
+    move2 = PoseStamped()
+    move2.header.frame_id = 'map'
+    move2.pose.position.x = currentPoint.x + .1
+    move2.pose.position.y = currentPoint.y + .1
+    move2.pose.orientation.z = 6.28
 
-    move1 = PoseStamped()
-    move1.header.frame_id = 'map'
-    move1.pose.position.x = currentPoint.x
-    move1.pose.position.y = currentPoint.y
-    move1.pose.orientation.z = 3.4
-
-    pubMove.publish(move1)
+    pubMove.publish(move2)
     #sleep for 5 sec for gmapping to catch up
     rospy.sleep(5.)
     #start navigating to frontiers
     navToFrontiers()
-    
+    print "Done with initial"
     #keeps exploring till all frontiers reached, but might not finish if we arent careful (doesnt stop exploring)
     while( not (len(UnknownSpace.cells) <=1)):
         #sleep for 5 sec for gmapping to catch up
@@ -434,7 +444,7 @@ def mrRogers(current):
 
     front.z = 0
 
-    print "front neighbor found"
+    #print "front neighbor found"
 
     left.x = x - unit_cell #if point gets negative then off map do something to deal with this
 
@@ -442,7 +452,7 @@ def mrRogers(current):
 
     left.z = 0
 
-    print "left neighbor found"
+    #print "left neighbor found"
 
     back.x = x
 
@@ -450,7 +460,7 @@ def mrRogers(current):
 
     back.z = 0
 
-    print "back neighbor found"
+    #print "back neighbor found"
 
     right.x = x + unit_cell
 
@@ -458,7 +468,7 @@ def mrRogers(current):
 
     right.z = 0
 
-    print "right neighbor found"
+    #print "right neighbor found"
 
  
 #eight neighbors
@@ -531,7 +541,7 @@ def visited(cell, length):
     if(length <= 0):
         for occupied in visitedList:
 
-            if((occupied.x == cell.x) and (occupied.y == cell.y) and (occupied.z == cell.z)):
+            if((math.fabs(occupied.x - cell.x) < cellThresh) and (math.fabs(occupied.y - cell.y) < cellThresh) and (math.fabs(occupied.z - cell.z) < cellThresh)):
 
                 return True
 
