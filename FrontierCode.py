@@ -373,7 +373,7 @@ def navToFrontiers():
 
     wait = 0
     #cancels after wait has been too long for succeed
-    while( (i not = len(move_status))):
+    while( (not i == len(move_status))):
         while (not (move_status[i].status == 3)):
             #chill
             print "Waiting for nav to finish"
