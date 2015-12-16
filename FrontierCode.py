@@ -46,7 +46,7 @@ def initializeFrontiers():
 	bfs = Queue()
 	bfs.put(startPoint)
 
-	while (!bfs.empty()):
+	while ( not bfs.empty()):
 		#sets current point of iterations and removes from queue
 		point = bfs.get()
 		#run get nbhood4 for currentPoint
@@ -67,7 +67,7 @@ def initializeFrontiers():
 
 		for x in nbr:
 			t = len(visited)
-			if(!cellOccupied(x) and !visited(x, t)):
+			if(not cellOccupied(x) and not visited(x, t)):
 				visited.append(x) #marks cell as visited
 				bfs.put(x) #places in search so we can look at its surroundings
 			elif(isNewFrontierCell(x)):
@@ -82,10 +82,10 @@ def initializeFrontiers():
 
 #returns true if the cell is a new frontier cell
 def isNewFrontierCell(cell):
-
+    pass
 #builds new frontier based on given cell
 def buildNewFrontier(cell):
-
+    pass
 
 
 def pointConversionToGmapping(pose):
@@ -378,6 +378,47 @@ def mrRogers(current):
         right.z = 0
 
         print "right neighbor found"
+        
+def EightNeighbors(current):
+    global front
+    global frontLeft
+    global left
+    global frontRight
+    global right
+    global backLeft
+    global back
+    global backRight
+    
+    global unit_cell
+
+    global cardinalDir
+
+    global height
+
+    global width
+    
+    x = current.x
+    y = current.y
+    
+    front.x = x
+    front.y = y + unit_cell
+    front.z = 0
+    frontLeft.x = x - unit_cell
+    frontLeft.y = y + unit_cell
+    frontLeft.z = 0    
+    frontRight.x = x + unit_cell
+    frontRight.y = y + unit_cell
+    frontRight.z = 0
+    back.x = x
+    back.y = y - unit_cell
+    back.z = 0
+    backLeft.x = x - unit_cell
+    backLeft.y = y - unit_cell
+    backLeft.z = 0
+    backRight.x = x + unit_cell
+    backRight.y = y - unit_cell
+    backRight.z = 0
+
 #checks to see if cell is occupied
 def cellOccupied(cell):
     global occupiedCells
@@ -419,7 +460,7 @@ def visited(cell, length):
 		return False
 #takes a cell and determines if it has been marked as a frontier_flag
 def frontier_flag(cell):
-	global frontier_flag
+    global frontier_flag
 
 
     #check frontier_flag for "cell"
