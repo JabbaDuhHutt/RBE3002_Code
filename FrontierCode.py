@@ -18,6 +18,7 @@ import numpy
 
 import math 
 
+#debug github
 #intializes search by taking in current position
 def searchFrontiers():
 	global currentPoint
@@ -106,7 +107,7 @@ def isNewFrontierCell(cell):
 	for x in nbr:
 		if(unknownSpace(x)):
 			return True
-			
+
 	return False
 #builds new frontier based on given cell
 def buildNewFrontier(cell):
