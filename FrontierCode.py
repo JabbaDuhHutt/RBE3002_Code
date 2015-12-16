@@ -114,16 +114,16 @@ def isNewFrontierCell(cell):
 	return False
 #builds new frontier based on given cell
 def buildNewFrontier(cell):
-    	global currentPoint
+	global currentPoint
 	global front
-        global frontLeft
-        global left
-        global frontRight
-        global right
-        global backLeft
-        global back
-        global backRight
-        global frontier_flag
+    global frontLeft
+    global left
+    global frontRight
+    global right
+    global backLeft
+    global back
+    global backRight
+    global frontier_flag
 
 	centroidPoint= Point()
 	centroidPoint.x=0
