@@ -940,6 +940,7 @@ def run():
 
         print("starting")
 
+        initialSpin()
         #odom_tf.sendTransform((0, 0, 0),(0, 0, 0, 1),rospy.Time.now(),"map","base_footprint")
 
         #publishObjectCells(mapData)
