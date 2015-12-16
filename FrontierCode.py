@@ -19,6 +19,7 @@ import tf
 import numpy
 
 import math 
+import Queue
 
 #debug github
 #intializes search by taking in current position
