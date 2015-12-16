@@ -688,14 +688,14 @@ def distanceFormula(start1,goal1):
     return d
 
 #Odometry Callback function
-def readOdom(msg):
-    global pose
-    global odom_tf
+#def readOdom(msg):
+#    global pose
+#    global odom_tf
 
-    pose = msg.pose
-    geo_quat = pose.pose.orientation
+ #   pose = msg.pose
+  #  geo_quat = pose.pose.orientation
 
-    odom_tf.sendTransform((pose.pose.position.x, pose.pose.position.y, 0), (pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w), rospy.Time.now(), "base_footprint","odom")
+   # odom_tf.sendTransform((pose.pose.position.x, pose.pose.position.y, 0), (pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w), rospy.Time.now(), "base_footprint","odom")
     
 
 def run():
@@ -815,7 +815,7 @@ def run():
 
     #markerSub = rospy.Subscriber('/move_base_simple/goal', PoseStamped, readGoal)
 
-    odomSub = rospy.Subscriber('/odom', Odometry, readOdom)
+    #odomSub = rospy.Subscriber('/odom', Odometry, readOdom)
 
     subMove = rospy.Subscriber('/move_base/status', GoalStatusArray, statusReader)
 
