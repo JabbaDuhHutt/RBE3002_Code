@@ -10,7 +10,7 @@ from nav_msgs.msg import OccupancyGrid, GridCells, Path, Odometry
 
 from geometry_msgs.msg import Point, Pose, PoseStamped, Twist, PoseWithCovarianceStamped, Quaternion
 
-from actionlib_msgs.msg import GoalStatusArray
+from actionlib_msgs.msg import GoalStatusArray, GoalID
 
 from tf.transformations import euler_from_quaternion
 
@@ -321,9 +321,8 @@ def statusReader(msg):
 
 def initialSpin():
     global currentPoint
-    global frontier_list
     global pubMove
-    global move_status
+    global UnknownSpace
 
     readCurrentPos()
 
@@ -334,8 +333,23 @@ def initialSpin():
     move1.pose.orientation.z = 6.283
 
     pubMove.publish(move1)
-
+    #sleep for 5 sec for gmapping to catch up
     rospy.sleep(5.)
+    #start navigating to frontiers
+    navToFrontiers()
+    
+    #keeps exploring till all frontiers reached, but might not finish if we arent careful (doesnt stop exploring)
+    while( (not len(UnknownSpace.cells) <=1)):
+        #sleep for 5 sec for gmapping to catch up
+        rospy.sleep(5.)
+        navToFrontiers()
+    print "We did it!!"
+    print "All frontiers explored"
+
+#navigates to frontiers
+def navToFrontiers():
+    global move_status
+    global cancelMove
 
     i = 0
     frontiers = searchFrontiers()
@@ -345,6 +359,7 @@ def initialSpin():
         frontierConvert = Pose()
         frontierConvert.position.x = frontier.centroid.x
         frontierConvert.position.y = frontier.centroid.y
+        
         #convert to gmapping (if occupancy grid is how we hope)
         goal = pointConversionToGmapping(frontierConvert)
 
@@ -356,16 +371,22 @@ def initialSpin():
         #publish posestamp messave to move stack
         pubMove.publish(tempPose)
 
-        wait = 0
-        while ((move_status[i] not = 3)):
+    wait = 0
+    #cancels after wait has been too long for succeed
+    while( (i not = len(move_status))):
+        while ((move_status[i].status not = 3)):
             #chill
             print "Waiting for nav to finish"
             wait += 1
             #set wait to time out nav after certain time
             if(wait>=20000):
                 print "Nav failed"
+                cancelMove.publish(move_status[i].goal_id)
+                i += 1
                 break
-
+            #increments so that proper array is looked at when nav
+            i += 1
+    print "Navigation should be done"
 #generates nbhood4 for "current"
 def mrRogers(current):
 
@@ -783,6 +804,7 @@ def run():
     global cardinalDir #direction robot is facing in respect to global map (1 is +y , 2 is -x, 3 is -y, 4 is +x)
 
     global occupiedCell #list of occupied cells
+
     global actual
 
     global initPos
@@ -797,7 +819,9 @@ def run():
 
     global threshHold
 
-    global pub
+    global pubMove
+
+    global cancelMove
 
     global pubGCell
 
@@ -872,6 +896,8 @@ def run():
     #publishers
 
     #pubGCell = rospy.Publisher('/grid_check', GridCells, queue_size=1)
+
+    cancelMove = rospy.Publisher('/move_base/cancel', GoalID, queue_size = 1)
 
     pubMove = rospy.Publisher('/move_base_simple/goal', PoseStamped, queue_size = 1)
 
