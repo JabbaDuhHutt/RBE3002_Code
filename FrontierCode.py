@@ -116,8 +116,8 @@ def isNewFrontierCell(cell):
 	return False
 #builds new frontier based on given cell
 def buildNewFrontier(cell):
-	global currentPoint
-	global front
+    global currentPoint
+    global front
     global frontLeft
     global left
     global frontRight
@@ -127,58 +127,58 @@ def buildNewFrontier(cell):
     global backRight
     global frontier_flag
 
-	centroidPoint= Point()
-	centroidPoint.x=0
-	centroidPoint.y=0
-	centroidPoint.z=0
-	readCurrentPos()
-	output = Frontier(centroidPoint,1,9001)
+    centroidPoint= Point()
+    centroidPoint.x=0
+    centroidPoint.y=0
+    centroidPoint.z=0
+    readCurrentPos()
+    output = Frontier(centroidPoint,1,9001)
 
-	bfs2=Queue()
-	bfs2.put(initial_cell)
-	fx = front
-	flx = frontLeft
-	lx = left
-	frx = frontRight
-	rx = right
-	blx = backLeft
-	bx = back
-	brx = backRight
-	
-	nbr = []
-	nbr.append(fx)
-	nbr.append(flx)
-	nbr.append(lx)
-	nbr.append(frx)
-	nbr.append(rx)
-	nbr.append(blx)
-	nbr.append(bx)
-	nbr.append(brx)
-	#take out reference
+    bfs2=Queue()
+    bfs2.put(initial_cell)
+    fx = front
+    flx = frontLeft
+    lx = left
+    frx = frontRight
+    rx = right
+    blx = backLeft
+    bx = back
+    brx = backRight
 
-	while not bfs2.empty():
-		idx = bfs2.get()
+    nbr = []
+    nbr.append(fx)
+    nbr.append(flx)
+    nbr.append(lx)
+    nbr.append(frx)
+    nbr.append(rx)
+    nbr.append(blx)
+    nbr.append(bx)
+    nbr.append(brx)
+    #take out reference
+
+    while not bfs2.empty():
+        idx = bfs2.get()
 
 
 
-		for j in nbr:
-			if(isNewFrontierCell(j)):
-				frontier_flag.append(j)
-				output.size = output.size + 1
-				output.centroid.x = output.centroid.x + j.x
-				output.centroid.y = output.centroid.y + j.y
+        for j in nbr:
+            if(isNewFrontierCell(j)):
+                frontier_flag.append(j)
+                output.size = output.size + 1
+                output.centroid.x = output.centroid.x + j.x
+                output.centroid.y = output.centroid.y + j.y
 
-			distance = distanceFormula(currentPoint,j)
-			if(distance < output.min_distance):
-				output.min_distance = distance
-				output.middle.x = j.x
-				output.middle.y = j.y
+            distance = distanceFormula(currentPoint,j)
+            if(distance < output.min_distance):
+                output.min_distance = distance
+                output.middle.x = j.x
+                output.middle.y = j.y
 
-			bfs2.put(j)
+            bfs2.put(j)
 
-	output.centroid.x = output.centroid.x/output.size
-	output.centroid.y = output.centroid.y/output.size
-	return output
+    output.centroid.x = output.centroid.x/output.size
+    output.centroid.y = output.centroid.y/output.size
+    return output
 
 
 def pointConversionToGmapping(pose):
@@ -339,7 +339,7 @@ def initialSpin():
     navToFrontiers()
     
     #keeps exploring till all frontiers reached, but might not finish if we arent careful (doesnt stop exploring)
-    while( (not len(UnknownSpace.cells) <=1)):
+    while( not (len(UnknownSpace.cells) <=1)):
         #sleep for 5 sec for gmapping to catch up
         rospy.sleep(5.)
         navToFrontiers()
@@ -359,7 +359,7 @@ def navToFrontiers():
         frontierConvert = Pose()
         frontierConvert.position.x = frontier.centroid.x
         frontierConvert.position.y = frontier.centroid.y
-        
+
         #convert to gmapping (if occupancy grid is how we hope)
         goal = pointConversionToGmapping(frontierConvert)
 
@@ -374,7 +374,7 @@ def navToFrontiers():
     wait = 0
     #cancels after wait has been too long for succeed
     while( (i not = len(move_status))):
-        while ((move_status[i].status not = 3)):
+        while (not (move_status[i].status == 3)):
             #chill
             print "Waiting for nav to finish"
             wait += 1
