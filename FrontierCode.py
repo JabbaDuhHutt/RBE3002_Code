@@ -40,8 +40,8 @@ def searchFrontiers():
 
 #move current point to local
 	readCurrentPos()
-	currentPoint.x = cx
-	currentPoint.y = cy
+	cx = currentPoint.x
+	cy = currentPoint.y
 #create local point for start
 	startPoint = Point();
 	startPoint.x = cx
@@ -137,30 +137,32 @@ def buildNewFrontier(cell):
 
     bfs2=Queue()
     bfs2.put(initial_cell)
-    fx = front
-    flx = frontLeft
-    lx = left
-    frx = frontRight
-    rx = right
-    blx = backLeft
-    bx = back
-    brx = backRight
+    
 
-    nbr = []
-    nbr.append(fx)
-    nbr.append(flx)
-    nbr.append(lx)
-    nbr.append(frx)
-    nbr.append(rx)
-    nbr.append(blx)
-    nbr.append(bx)
-    nbr.append(brx)
+
     #take out reference
 
     while not bfs2.empty():
         idx = bfs2.get()
 
-
+        EightNeighbors(idx)
+        fx = front
+        flx = frontLeft
+        lx = left
+        frx = frontRight
+        rx = right
+        blx = backLeft
+        bx = back
+        brx = backRight
+        nbr = []
+        nbr.append(fx)
+        nbr.append(flx)
+        nbr.append(lx)
+        nbr.append(frx)
+        nbr.append(rx)
+        nbr.append(blx)
+        nbr.append(bx)
+        nbr.append(brx)
 
         for j in nbr:
             if(isNewFrontierCell(j)):
@@ -763,13 +765,7 @@ def distanceFormula(start1,goal1):
 
     return d
 
-class Frontier:
-	
-	def __init__(self,centroid,size,min_distance):
-		self.centroid = centroid
-		self.size= size
-		self.min_distance = min_distance
-		self.middle = Point()
+
 
 def run():
 
@@ -965,8 +961,13 @@ def run():
 
 
 
-
-
+class Frontier:
+	
+	def __init__(self,centroid,size,min_distance):
+		self.centroid = centroid
+		self.size= size
+		self.min_distance = min_distance
+		self.middle = Point()
 
 
     
@@ -980,3 +981,4 @@ if __name__ == '__main__':
     except rospy.ROSInterruptException:
 
         pass
+        
