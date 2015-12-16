@@ -96,7 +96,10 @@ def isNewFrontierCell(cell):
 
 	if(not unknownSpace(cell) or frontier_flag(cell)):
 		return False
-	
+	fx = front
+	rx = right
+	lx = left
+	bx = back
 	#make list of neighbor to currentPoint
 	nbr = []
 	nbr.append(fx)
@@ -111,7 +114,69 @@ def isNewFrontierCell(cell):
 	return False
 #builds new frontier based on given cell
 def buildNewFrontier(cell):
+    	global currentPoint
+	global front
+        global frontLeft
+        global left
+        global frontRight
+        global right
+        global backLeft
+        global back
+        global backRight
+        global frontier_flag
 
+	centroidPoint= Point()
+	centroidPoint.x=0
+	centroidPoint.y=0
+	centroidPoint.z=0
+	readCurrentPos()
+	output = Frontier(centroidPoint,1,9001)
+
+	bfs2=Queue()
+	bfs2.put(initial_cell)
+	fx = front
+	flx = frontLeft
+	lx = left
+	frx = frontRight
+	rx = right
+	blx = backLeft
+	bx = back
+	brx = backRight
+	
+	nbr = []
+	nbr.append(fx)
+	nbr.append(flx)
+	nbr.append(lx)
+	nbr.append(frx)
+	nbr.append(rx)
+	nbr.append(blx)
+	nbr.append(bx)
+	nbr.append(brx)
+	#take out reference
+
+	while not bfs2.empty():
+		idx = bfs2.get()
+
+
+
+		for j in nbr:
+			if(isNewFrontierCell(j)):
+				frontier_flag.append(j)
+				output.size = output.size + 1
+				output.centroid.x = output.centroid.x + j.x
+				output.centroid.y = output.centroid.y + j.y
+
+			distance = distanceFormula(currentPoint,j)
+			if(distance < output.min_distance):
+				output.min_distance = distance
+				output.middle.x = j.x
+				output.middle.y = j.y
+
+			bfs2.put(j)
+
+	output.centroid.x = output.centroid.x/output.size
+	output.centroid.y = output.centroid.y/output.size
+	return output
 
 
 def pointConversionToGmapping(pose):
@@ -485,14 +550,14 @@ def visited(cell, length):
 		return False
 #takes a cell and determines if it has been marked as a frontier_flag
 def frontier_flag(cell):
-	global frontier_flag
+    global frontier_flag
 
 
     #check frontier_flag for "cell"
     #if cell has been marked as a frontier return true
 
     for frontier in frontier_flag:
-
+        
         if((frontier.x == cell.x) and (frontier.y == cell.y) and (frontier.z == cell.z)):
 
             return True
@@ -502,10 +567,10 @@ def frontier_flag(cell):
             return False
 #checks to see if cell unknown
 def unknownSpace(cell):
-	global UnknownSpace
+    global UnknownSpace
 
-	for unknown in UnknownSpace.cells:
-		if((math.fabs(unknown.x - cell.x) < cellThresh) and (math.fabs(unknown.y - cell.y) < cellThresh) and (math.fabs(unknown.z - cell.z) < cellThresh)): #break up for debug if not equating 
+    for unknown in UnknownSpace.cells:
+	if((math.fabs(unknown.x - cell.x) < cellThresh) and (math.fabs(unknown.y - cell.y) < cellThresh) and (math.fabs(unknown.z - cell.z) < cellThresh)): #break up for debug if not equating 
 
             return True
 
@@ -588,6 +653,37 @@ def publishObjectCells(grid):
     	unknown.y = int((Cells.cells[i].y/20))
     	unknown.z = 0
 
-    	if(tempCell not in ):
+    	if(unknown not in UnknownSpace.cells):
             UnknownSpace.cells.append(unknown)
+            
     #unknownCell.publish(Cells)
+    
+def distanceFormula(start1,goal1):
+
+    x0 = start1.x
+
+    y0 = start1.y
+
+    
+
+    x1 = goal1.x
+
+    y1 = goal1.y
+
+    
+
+    xx = x1-x0
+
+    yy = y1-y0
+
+    d = math.sqrt((math.pow(xx,2) + math.pow(yy,2)))
+
+    return d
+
+class Frontier:
+	
+	def __init__(self,centroid,size,min_distance):
+		self.centroid = centroid
+		self.size= size
+		self.min_distance = min_distance
+		self.middle = Point()
