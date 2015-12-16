@@ -1,8 +1,16 @@
 #!/usr/bin/env python
 
-
+class Frontier:
+    
+    def __init__(self,centroid,size,min_distance):
+        self.centroid = centroid
+        self.size= size
+        self.min_distance = min_distance
+        self.middle = Point()
 
 import rospy
+
+#import Frontier
 
 from std_msgs.msg import String
 
@@ -19,102 +27,103 @@ import tf
 import numpy
 
 import math 
+
 import Queue
 
 #debug github
 #intializes search by taking in current position
 def searchFrontiers():
-	global currentPoint
-	#global cardinalDir
-	global front
-	global right
-	global left
-	global back
-	global visited
-	global frontier_flag
-	global frontier_list
+    global currentPoint
+    #global cardinalDir
+    global front
+    global right
+    global left
+    global back
+    global visitedList
+    global frontier_flag
+    global frontier_list
 
-	#cardinalDir = 1
+    #cardinalDir = 1
 
-	frontier_list = []
+    frontier_list = []
 
 #move current point to local
-	readCurrentPos()
-	cx = currentPoint.x
-	cy = currentPoint.y
+    readCurrentPos()
+    cx = currentPoint.x
+    cy = currentPoint.y
 #create local point for start
-	startPoint = Point();
-	startPoint.x = cx
-	startPoint.y = cy
+    startPoint = Point();
+    startPoint.x = cx
+    startPoint.y = cy
 
-	visited = []
-	frontier_flag = []
+    visitedList = []
+    frontier_flag = []
 
-	bfs = Queue()
-	bfs.put(startPoint)
+    bfs = Queue.Queue()
+    bfs.put(startPoint)
 
-	while (not bfs.empty()):
-		#sets current point of iterations and removes from queue
-		point = bfs.get()
-		#run get nbhood4 for currentPoint
-		mrRogers(point)
-		#make list of neighbor to currentPoint
-		fx = front
-		rx = right
-		lx = left
-		bx = back
-		#make list of neighbor to currentPoint
-		nbr = []
-		nbr.append(fx)
-		nbr.append(rx)
-		nbr.append(lx)
-		nbr.append(bx)
+    while (not bfs.empty()):
+        #sets current point of iterations and removes from queue
+        point = bfs.get()
+        #run get nbhood4 for currentPoint
+        mrRogers(point)
+        #make list of neighbor to currentPoint
+        fx = front
+        rx = right
+        lx = left
+        bx = back
+        #make list of neighbor to currentPoint
+        nbr = []
+        nbr.append(fx)
+        nbr.append(rx)
+        nbr.append(lx)
+        nbr.append(bx)
 
-		
+        
 
-		for x in nbr:
-			t = len(visited)
-			if(((not cellOccupied(x)) and (not unknownSpace(x))) and  not visited(x, t)):
-				visited.append(x) #marks cell as visited
-				bfs.put(x) #places in search so we can look at its surroundings
-			elif(isNewFrontierCell(x)):
-				frontier_flag.append(x) #marks cell as frontier
-				new_frontier = buildNewFrontier(x)
-				if(new_frontier.size > 1):
-					n = len(frontier_list) - 1
-					frontier_list.insert(n, new_frontier) #puts frontier at the end of the list
+        for x in nbr:
+            t = len(visitedList)
+            if(((not cellOccupied(x)) and (not unknownSpace(x))) and  not visited(x, t)):
+                visitedList.append(x) #marks cell as visited
+                bfs.put(x) #places in search so we can look at its surroundings
+            elif(isNewFrontierCell(x)):
+                frontier_flag.append(x) #marks cell as frontier
+                new_frontier = buildNewFrontier(x)
+                if(new_frontier.size > 1):
+                    n = len(frontier_list) - 1
+                    frontier_list.insert(n, new_frontier) #puts frontier at the end of the list
 
-	return frontier_list #might not do this because node might just shot accros but will do for now
+    return frontier_list #might not do this because node might just shot accros but will do for now
 
 
 #returns true if the cell is a new frontier cell
 def isNewFrontierCell(cell):
-	global front
-	global back
-	global right
-	global left
-	global currentPoint
+    global front
+    global back
+    global right
+    global left
+    global currentPoint
 
-	readCurrentPos()
+    readCurrentPos()
 
-	if(not unknownSpace(cell) or frontier_flag(cell)):
-		return False
-	fx = front
-	rx = right
-	lx = left
-	bx = back
-	#make list of neighbor to currentPoint
-	nbr = []
-	nbr.append(fx)
-	nbr.append(rx)
-	nbr.append(lx)
-	nbr.append(bx)
+    if(not unknownSpace(cell) or frontier_flag(cell)):
+        return False
+    fx = front
+    rx = right
+    lx = left
+    bx = back
+    #make list of neighbor to currentPoint
+    nbr = []
+    nbr.append(fx)
+    nbr.append(rx)
+    nbr.append(lx)
+    nbr.append(bx)
 
-	for x in nbr:
-		if(unknownSpace(x)):
-			return True
+    for x in nbr:
+        if(unknownSpace(x)):
+            return True
 
-	return False
+    return False
 #builds new frontier based on given cell
 def buildNewFrontier(cell):
     global currentPoint
@@ -135,7 +144,7 @@ def buildNewFrontier(cell):
     readCurrentPos()
     output = Frontier(centroidPoint,1,9001)
 
-    bfs2=Queue()
+    bfs2=Queue.Queue()
     bfs2.put(initial_cell)
     
 
@@ -320,7 +329,7 @@ def statusReader(msg):
     global move_status
 
     #gets status array
-    move_status = msg.status_List
+    move_status = msg.status_list
 
 def initialSpin():
     global currentPoint
@@ -333,7 +342,7 @@ def initialSpin():
     move1.header.frame_id = 'map'
     move1.pose.position.x = currentPoint.x
     move1.pose.position.y = currentPoint.y
-    move1.pose.orientation.z = 6.283
+    move1.pose.orientation.z = 3.4
 
     pubMove.publish(move1)
     #sleep for 5 sec for gmapping to catch up
@@ -514,23 +523,23 @@ def cellOccupied(cell):
 # param: cell is used to tell if it in the visited list
 # param: lenght is used to tell if visited is empty and if so just return false
 def visited(cell, length):
-    global visited
+    global visitedList
 
 
     #check visited for "cell"
     #if cell has been visited return true
     if(length <= 0):
-    	for occupied in visited:
+        for occupied in visitedList:
 
-	        if((occupied.x == cell.x) and (occupied.y == cell.y) and (occupied.z == cell.z)):
+            if((occupied.x == cell.x) and (occupied.y == cell.y) and (occupied.z == cell.z)):
 
-	            return True
+                return True
 
-	        else:
+            else:
 
-	            return False
-	else:
-		return False
+                return False
+    else:
+        return False
 #takes a cell and determines if it has been marked as a frontier_flag
 def frontier_flag(cell):
     global frontier_flag
@@ -553,14 +562,14 @@ def unknownSpace(cell):
     global UnknownSpace
 
     for unknown in UnknownSpace.cells:
-	if((math.fabs(unknown.x - cell.x) < cellThresh) and (math.fabs(unknown.y - cell.y) < cellThresh) and (math.fabs(unknown.z - cell.z) < cellThresh)): #break up for debug if not equating 
+    if((math.fabs(unknown.x - cell.x) < cellThresh) and (math.fabs(unknown.y - cell.y) < cellThresh) and (math.fabs(unknown.z - cell.z) < cellThresh)): #break up for debug if not equating 
 
             return True
 
         else:
 
             return False
-	
+    
 #publish or just get grid cells that have obstacle with x,y location
 #FIXED
 def publishObjectCells(grid):
@@ -594,7 +603,7 @@ def publishObjectCells(grid):
                 point.z=0
                 occupiedCells.cells.append(point)
     
-    pubGCell.publish(occupiedCells)
+    #pubGCell.publish(occupiedCells)
 
     for i in range(0, len(occupiedCells.cells) - 1):
         tempCell = Point()
@@ -631,12 +640,12 @@ def publishObjectCells(grid):
                 Cells.cells.append(point1)
     
     for i in range(0, len(Cells.cells) - 1):
-    	unknown = Point()
-    	unknown.x = int((Cells.cells[i].x/20))
-    	unknown.y = int((Cells.cells[i].y/20))
-    	unknown.z = 0
+        unknown = Point()
+        unknown.x = int((Cells.cells[i].x/20))
+        unknown.y = int((Cells.cells[i].y/20))
+        unknown.z = 0
 
-    	if(unknown not in UnknownSpace.cells):
+        if(unknown not in UnknownSpace.cells):
             UnknownSpace.cells.append(unknown)
             
     #unknownCell.publish(Cells)
@@ -663,7 +672,16 @@ def distanceFormula(start1,goal1):
 
     return d
 
+#Odometry Callback function
+def readOdom(msg):
+    global pose
+    global odom_tf
 
+    pose = msg.pose
+    geo_quat = pose.pose.orientation
+
+    odom_tf.sendTransform((pose.pose.position.x, pose.pose.position.y, 0), (pose.pose.orientation.x, pose.pose.orientation.y, pose.pose.orientation.z, pose.pose.orientation.w), rospy.Time.now(), "base_footprint","odom")
+    
 
 def run():
 
@@ -859,13 +877,7 @@ def run():
 
 
 
-class Frontier:
-	
-	def __init__(self,centroid,size,min_distance):
-		self.centroid = centroid
-		self.size= size
-		self.min_distance = min_distance
-		self.middle = Point()
+
 
 
     
