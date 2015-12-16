@@ -73,17 +73,26 @@ def searchFrontiers():
         rx = right
         lx = left
         bx = back
+        print back
+        lame = back
+        
         #make list of neighbor to currentPoint
         nbr = []
         nbr.append(fx)
+        print nbr
         nbr.append(rx)
+        print nbr
         nbr.append(lx)
-        nbr.append(bx)
+        print nbr
+        nbr.append(lame)
+        print "Here"
+        print nbr
         
-        print "LIST of Visited"
-        print visitedList
+        #print "LIST of Visited"
+        #print visitedList
 
         for x in nbr:
+            print "Here"
             t = len(visitedList)
             if(((not cellOccupied(x)) and (not unknownSpace(x))) and  not visited(x, t)):
                 visitedList.append(x) #marks cell as visited
@@ -94,9 +103,8 @@ def searchFrontiers():
                 if(new_frontier.size > 1):
                     n = len(frontier_list) - 1
                     frontier_list.insert(n, new_frontier) #puts frontier at the end of the list
-
+                    
     return frontier_list #might not do this because node might just shot accros but will do for now
-
 
 #returns true if the cell is a new frontier cell
 def isNewFrontierCell(cell):
@@ -444,7 +452,7 @@ def mrRogers(current):
 
     front.z = 0
 
-    #print "front neighbor found"
+    print "front neighbor found"
 
     left.x = x - unit_cell #if point gets negative then off map do something to deal with this
 
@@ -452,7 +460,7 @@ def mrRogers(current):
 
     left.z = 0
 
-    #print "left neighbor found"
+    print "left neighbor found"
 
     back.x = x
 
@@ -460,7 +468,7 @@ def mrRogers(current):
 
     back.z = 0
 
-    #print "back neighbor found"
+    print "back neighbor found"
 
     right.x = x + unit_cell
 
@@ -468,7 +476,7 @@ def mrRogers(current):
 
     right.z = 0
 
-    #print "right neighbor found"
+    print "right neighbor found"
 
  
 #eight neighbors
@@ -572,12 +580,9 @@ def unknownSpace(cell):
     global UnknownSpace
 
     for unknown in UnknownSpace.cells:
-    if((math.fabs(unknown.x - cell.x) < cellThresh) and (math.fabs(unknown.y - cell.y) < cellThresh) and (math.fabs(unknown.z - cell.z) < cellThresh)): #break up for debug if not equating 
-
+        if((math.fabs(unknown.x - cell.x) < cellThresh) and (math.fabs(unknown.y - cell.y) < cellThresh) and (math.fabs(unknown.z - cell.z) < cellThresh)): #break up for debug if not equating 
             return True
-
         else:
-
             return False
     
 #publish or just get grid cells that have obstacle with x,y location
