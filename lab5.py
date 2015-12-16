@@ -59,6 +59,7 @@ def frontier(fullmapGridExplored):
 					if(fullmapGridExplored[i][j+1]):
 						amount= amount+1
 				if(amount>0):
+				        pass
 					#put cells in arrayOfFrontires
 	for element in arrayOfFrontires:#create array of frontiers at some point
 		if(heuristic(currentPoint,element)<smallestDistance):

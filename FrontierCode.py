@@ -404,6 +404,46 @@ def mrRogers(current):
     #     right.z = 0
 
     #     print "right neighbor found"
+#eight neighbors
+def EightNeighbors(current):
+    global front
+    global frontLeft
+    global left
+    global frontRight
+    global right
+    global backLeft
+    global back
+    global backRight
+    
+    global unit_cell
+
+    global cardinalDir
+
+    global height
+
+    global width
+    
+    x = current.x
+    y = current.y
+    
+    front.x = x
+    front.y = y + unit_cell
+    front.z = 0
+    frontLeft.x = x - unit_cell
+    frontLeft.y = y + unit_cell
+    frontLeft.z = 0    
+    frontRight.x = x + unit_cell
+    frontRight.y = y + unit_cell
+    frontRight.z = 0
+    back.x = x
+    back.y = y - unit_cell
+    back.z = 0
+    backLeft.x = x - unit_cell
+    backLeft.y = y - unit_cell
+    backLeft.z = 0
+    backRight.x = x + unit_cell
+    backRight.y = y - unit_cell
+    backRight.z = 0
 #checks to see if cell is occupied
 def cellOccupied(cell):
     global occupiedCells
