@@ -282,7 +282,7 @@ def readCurrentPos():
 
     #odomW = orientation.pose.pose.orientation
 
-    #q = [odomW.x, odomW.y, odomW.z, odomW.w]###############################################################################
+    #q = [odomW.x, odomW.y, odomW.z, odomW.w]
 
     roll, pitch, yaw = euler_from_quaternion(q)
 
@@ -546,7 +546,7 @@ def visited(cell, length):
 
     #check visited for "cell"
     #if cell has been visited return true
-    if(length <= 0):
+    if(length > 0): #changed <= to > ############################################################CHANGES#########################################################
         for occupied in visitedList:
 
             if((math.fabs(occupied.x - cell.x) < cellThresh) and (math.fabs(occupied.y - cell.y) < cellThresh) and (math.fabs(occupied.z - cell.z) < cellThresh)):
@@ -841,11 +841,11 @@ def run():
 
     odom_list = tf.TransformListener()
 
-    odom_tf = tf.TransformBroadcaster()
+    #odom_tf = tf.TransformBroadcaster()
 
     
 
-    odom_tf.sendTransform((0, 0, 0),(0, 0, 0, 1),rospy.Time.now(),"map","base_footprint")
+    #odom_tf.sendTransform((0, 0, 0),(0, 0, 0, 1),rospy.Time.now(),"map","base_footprint")
 
     
 
