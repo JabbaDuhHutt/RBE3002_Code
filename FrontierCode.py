@@ -35,6 +35,10 @@ import Queue
 def searchFrontiers():
     global currentPoint
     #global cardinalDir
+    global front1
+    global back1
+    global right1
+    global left1
     global front
     global right
     global left
@@ -71,12 +75,12 @@ def searchFrontiers():
         #run get nbhood4 for currentPoint
         mrRogers(point)
         #make list of neighbor to currentPoint
-        fx = front
-        rx = right
-        lx = left
-        bx = back
-        print back
-        lame = back
+        fx = front1
+        rx = right1
+        lx = left1
+        bx = back1
+        print back1
+        lame = back1
         
         #make list of neighbor to currentPoint
         nbr = []
@@ -86,7 +90,7 @@ def searchFrontiers():
         print nbr
         nbr.append(lx)
         print nbr
-        nbr.append(lame)
+        nbr.append(bx)
         print "Here"
         print nbr
         
@@ -119,6 +123,10 @@ def searchFrontiers():
 
 #returns true if the cell is a new frontier cell
 def isNewFrontierCell(cell, state):
+    global front1
+    global back1
+    global right1
+    global left1
     global front
     global back
     global right
@@ -135,10 +143,10 @@ def isNewFrontierCell(cell, state):
 
         if(not unknownSpace(cell) or frontier_flags(cell)):
             return False
-        fx = front
-        rx = right
-        lx = left
-        bx = back
+        fx = front1
+        rx = right1
+        lx = left1
+        bx = back1
         #make list of neighbor to currentPoint
         nbr = []
         nbr.append(fx)
@@ -419,7 +427,7 @@ def initialSpin():
 
     pubMove.publish(move2)
     #sleep for 5 sec for gmapping to catch up
-    rospy.sleep(5.)
+    #rospy.sleep(5.)
     #start navigating to frontiers
     navToFrontiers()
     print "Done with initial"
@@ -475,13 +483,13 @@ def navToFrontiers():
 #generates nbhood4 for "current"
 def mrRogers(current):
 
-    global front
+    global front1
 
-    global left
+    global left1
 
-    global right
+    global right1
 
-    global back
+    global back1
 
     global unit_cell
 
@@ -501,35 +509,35 @@ def mrRogers(current):
 
     #if(cardinalDir == 1):
 
-    front.x = x
+    front1.x = x
 
-    front.y = y + unit_cell
+    front1.y = y + unit_cell
 
-    front.z = 0
+    front1.z = 0
 
     #print "front neighbor found"
 
-    left.x = x - unit_cell #if point gets negative then off map do something to deal with this
+    left1.x = x - unit_cell #if point gets negative then off map do something to deal with this
 
-    left.y = y
+    left1.y = y
 
-    left.z = 0
+    left1.z = 0
 
     #print "left neighbor found"
 
-    back.x = x
+    back1.x = x
 
-    back.y = y - unit_cell
+    back1.y = y - unit_cell
 
-    back.z = 0
+    back1.z = 0
 
     #print "back neighbor found"
 
-    right.x = x + unit_cell
+    right1.x = x + unit_cell
 
-    right.y = y
+    right1.y = y
 
-    right.z = 0
+    right1.z = 0
 
     #print "right neighbor found"
 
@@ -766,7 +774,10 @@ def run():
     #global start
 
     #global target
-
+    global front1
+    global back1
+    global right1
+    global left1
     global front
     global frontLeft
     global left
@@ -852,6 +863,10 @@ def run():
 
     doneFlag = False
 
+    front1 = Point();
+    back1 = Point();
+    right1 = Point();
+    left1 = Point();
     front = Point();
     frontLeft = Point();
     frontRight = Point();

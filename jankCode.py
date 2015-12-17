@@ -28,6 +28,15 @@ def statusReader(msg):
 
     #gets status array
     move_status = msg.status_list
+def pointConversionToGmapping(pose):
+    global origin
+    
+    newPose = Pose()
+    newPose.position.x = pose.position.x + origin.position.x
+    newPose.position.y = pose.position.y + origin.position.y
+    newPose.orientation.z = pose.orientation.z + origin.orientation.z #i think this is right + over -
+
+    return newPose
 #read map data
 
 def readWorldMap(data):
@@ -51,7 +60,20 @@ def readWorldMap(data):
 
     height = data.info.height
 
-    publishObjectCells(mapData)
+    #publishObjectCells(mapData)
+def quickRun():
+
+    for i in range(1,height): #height should be set to hieght of grid
+        k=k+1
+        for j in range(1,width): #height should be set to hieght of grid
+            k=k+1
+            #print k # used for debugging
+            if (grid[k] == -1):
+                point=Point()
+                point.x=j*.05 # edit for grid size
+                point.y=i*.05 # edit for grid size
+                point.z=0
+                occupiedCells.cells.append(point)
 
 def initialSpin():
     global currentPoint
@@ -85,114 +107,115 @@ def navToFrontiers():
     done = False
     i = 0
     j = 0
-    while not done:
-        movement1 = PoseStamped()
-        movement1.header.frame_id = 'map'
-        movement1.pose.position.x = width * 0.05
-        movement1.pose.position.y = height * 0.05
-        movement1.pose.orientation.z = 0
+    #while not done:
 
-        pubMove.publish(movement1)
+    movement1 = PoseStamped()
+    movement1.header.frame_id = 'map'
+    movement1.pose.position.x = 9
+    movement1.pose.position.y = 9
+    movement1.pose.orientation.z = 1
 
-        wait = 0
-        #cancels after wait has been too long for succeed
-        while (not (move_status[i].status == 3)  or not done):
-            #set wait to time out nav after certain time
-            if(wait>=20000):
-                print "Nav failed"
-                cancelMove.publish(move_status[i].goal_id)
-                done = True
-                i += 1
-                break
-            else:
+    pubMove.publish(movement1)
 
-                #chill
-                print "Waiting for nav to finish"
-                wait += 1
+    #     wait = 0
+    #     #cancels after wait has been too long for succeed
+    #     while (not (move_status[0].status == 3)  or not done):
+    #         #set wait to time out nav after certain time
+    #         if(wait>=100000):
+    #             print "Nav failed"
+    #             cancelMove.publish(move_status[0].goal_id)
+    #             done = True
+    #             i += 1
+    #             break
+    #         else:
+
+    #             #chill
+    #             print "Waiting for nav to finish"
+    #             wait += 1
             
-                #increments so that proper array is looked at when nav
-                i += 1
-    done = False
-    while not done:
-        movement2 = PoseStamped()
-        movement2.header.frame_id = 'map'
-        movement2.pose.position.x = -(width * 0.05) #either negative or 0 cant decide
-        movement2.pose.position.y = height * 0.05
-        movement2.pose.orientation.z = 0
+    #             #increments so that proper array is looked at when nav
+    #             i += 1
+    # done = False
+    #while not done:
+    movement2 = PoseStamped()
+    movement2.header.frame_id = 'map'
+    movement2.pose.position.x = 0 #either negative or 0 cant decide
+    movement2.pose.position.y = 9
+    movement2.pose.orientation.z = 1
 
-        pubMove.publish(movement2)
+    pubMove.publish(movement2)
 
-        wait = 0
-        #cancels after wait has been too long for succeed
-        while (not (move_status[i].status == 3)  or not done): #maybe i or maybe not
-            #set wait to time out nav after certain time
-            if(wait>=20000):
-                print "Nav failed"
-                cancelMove.publish(move_status[i].goal_id)
-                done = True
-                i += 1
-                break
-            else:
+        # wait = 0
+        # #cancels after wait has been too long for succeed
+        # while (not (move_status[1].status == 3)  or not done): #maybe i or maybe not
+        #     #set wait to time out nav after certain time
+        #     if(wait>=100000):
+        #         print "Nav failed"
+        #         cancelMove.publish(move_status[1].goal_id)
+        #         done = True
+        #         i += 1
+        #         break
+        #     else:
                 
-                #chill
-                print "Waiting for nav to finish"
-                wait += 1
-                #increments so that proper array is looked at when nav
-                i += 1
-    done = False
-    while not done:
-        movement3 = PoseStamped()
-        movement3.header.frame_id = 'map'
-        movement3.pose.position.x = width * 0.05 #either negative or 0 cant decide
-        movement3.pose.position.y = -(height * 0.05)
-        movement3.pose.orientation.z = 0
+        #         #chill
+        #         print "Waiting for nav to finish"
+        #         wait += 1
+        #         #increments so that proper array is looked at when nav
+        #         i += 1
+   # done = False
+    #while not done:
+    movement3 = PoseStamped()
+    movement3.header.frame_id = 'map'
+    movement3.pose.position.x = 9 #either negative or 0 cant decide
+    movement3.pose.position.y = 0
+    movement3.pose.orientation.z = 1
 
-        pubMove.publish(movement3)
+    pubMove.publish(movement3)
 
-        wait = 0
-        #cancels after wait has been too long for succeed
-        while (not (move_status[i].status == 3) or not done): #maybe i or maybe not
-            #set wait to time out nav after certain time
-            if(wait>=20000):
-                print "Nav failed"
-                cancelMove.publish(move_status[i].goal_id)
-                done = True
-                i += 1
-                break
-            else:
+    #     wait = 0
+    #     #cancels after wait has been too long for succeed
+    #     while (not (move_status[2].status == 3) or not done): #maybe i or maybe not
+    #         #set wait to time out nav after certain time
+    #         if(wait>=100000):
+    #             print "Nav failed"
+    #             cancelMove.publish(move_status[2].goal_id)
+    #             done = True
+    #             i += 1
+    #             break
+    #         else:
                 
-                #chill
-                print "Waiting for nav to finish"
-                wait += 1
-                #increments so that proper array is looked at when nav
-                i += 1
-    done = False
-    while not done:
-        movement4 = PoseStamped()
-        movement4.header.frame_id = 'map'
-        movement4.pose.position.x = -(width * 0.05) #either negative or 0 cant decide
-        movement4.pose.position.y = -(height * 0.05)
-        movement4.pose.orientation.z = 0
+    #             #chill
+    #             print "Waiting for nav to finish"
+    #             wait += 1
+    #             #increments so that proper array is looked at when nav
+    #             i += 1
+    # done = False
+    #while not done:
+    movement4 = PoseStamped()
+    movement4.header.frame_id = 'map'
+    movement4.pose.position.x = 0#either negative or 0 cant decide
+    movement4.pose.position.y = 0
+    movement4.pose.orientation.z = 1
 
-        pubMove.publish(movement4)
+    pubMove.publish(movement4)
 
-        wait = 0
-        #cancels after wait has been too long for succeed
-        while (not (move_status[i].status == 3)  or not done): #maybe i or maybe not
-           #set wait to time out nav after certain time
-            if(wait>=20000):
-                print "Nav failed"
-                cancelMove.publish(move_status[i].goal_id)
-                done = True
-                i += 1
-                break
-            else:
+        # wait = 0
+        # #cancels after wait has been too long for succeed
+        # while (not (move_status[3].status == 3)  or not done): #maybe i or maybe not
+        #    #set wait to time out nav after certain time
+        #     if(wait>=100000):
+        #         print "Nav failed"
+        #         cancelMove.publish(move_status[3].goal_id)
+        #         done = True
+        #         i += 1
+        #         break
+        #     else:
                 
-                #chill
-                print "Waiting for nav to finish"
-                wait += 1
-                #increments so that proper array is looked at when nav
-                i += 1
+        #         #chill
+        #         print "Waiting for nav to finish"
+        #         wait += 1
+        #         #increments so that proper array is looked at when nav
+        #         i += 1
     print "DONE"
     
 
