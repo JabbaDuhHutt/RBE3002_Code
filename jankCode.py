@@ -90,14 +90,13 @@ def navToFrontiers():
         movement1.header.frame_id = 'map'
         movement1.pose.position.x = width * 0.05
         movement1.pose.position.y = height * 0.05
+        movement1.pose.orientation.z = 0
+
         pubMove.publish(movement1)
 
         wait = 0
         #cancels after wait has been too long for succeed
-        while (not (move_status[i].status == 3)):
-            #chill
-            print "Waiting for nav to finish"
-            wait += 1
+        while (not (move_status[i].status == 3)  or not done):
             #set wait to time out nav after certain time
             if(wait>=20000):
                 print "Nav failed"
@@ -105,22 +104,27 @@ def navToFrontiers():
                 done = True
                 i += 1
                 break
-            #increments so that proper array is looked at when nav
-            i += 1
+            else:
+
+                #chill
+                print "Waiting for nav to finish"
+                wait += 1
+            
+                #increments so that proper array is looked at when nav
+                i += 1
     done = False
     while not done:
         movement2 = PoseStamped()
         movement2.header.frame_id = 'map'
         movement2.pose.position.x = -(width * 0.05) #either negative or 0 cant decide
         movement2.pose.position.y = height * 0.05
+        movement2.pose.orientation.z = 0
+
         pubMove.publish(movement2)
 
         wait = 0
         #cancels after wait has been too long for succeed
-        while (not (move_status[i].status == 3)): #maybe i or maybe not
-            #chill
-            print "Waiting for nav to finish"
-            wait += 1
+        while (not (move_status[i].status == 3)  or not done): #maybe i or maybe not
             #set wait to time out nav after certain time
             if(wait>=20000):
                 print "Nav failed"
@@ -128,22 +132,26 @@ def navToFrontiers():
                 done = True
                 i += 1
                 break
-            #increments so that proper array is looked at when nav
-            i += 1
+            else:
+                
+                #chill
+                print "Waiting for nav to finish"
+                wait += 1
+                #increments so that proper array is looked at when nav
+                i += 1
     done = False
     while not done:
         movement3 = PoseStamped()
         movement3.header.frame_id = 'map'
         movement3.pose.position.x = width * 0.05 #either negative or 0 cant decide
         movement3.pose.position.y = -(height * 0.05)
+        movement3.pose.orientation.z = 0
+
         pubMove.publish(movement3)
 
         wait = 0
         #cancels after wait has been too long for succeed
-        while (not (move_status[i].status == 3)): #maybe i or maybe not
-            #chill
-            print "Waiting for nav to finish"
-            wait += 1
+        while (not (move_status[i].status == 3) or not done): #maybe i or maybe not
             #set wait to time out nav after certain time
             if(wait>=20000):
                 print "Nav failed"
@@ -151,31 +159,40 @@ def navToFrontiers():
                 done = True
                 i += 1
                 break
-            #increments so that proper array is looked at when nav
-            i += 1
+            else:
+                
+                #chill
+                print "Waiting for nav to finish"
+                wait += 1
+                #increments so that proper array is looked at when nav
+                i += 1
     done = False
     while not done:
         movement4 = PoseStamped()
         movement4.header.frame_id = 'map'
         movement4.pose.position.x = -(width * 0.05) #either negative or 0 cant decide
         movement4.pose.position.y = -(height * 0.05)
+        movement4.pose.orientation.z = 0
+
         pubMove.publish(movement4)
 
         wait = 0
         #cancels after wait has been too long for succeed
-        while (not (move_status[i].status == 3)): #maybe i or maybe not
-            #chill
-            print "Waiting for nav to finish"
-            wait += 1
-            #set wait to time out nav after certain time
+        while (not (move_status[i].status == 3)  or not done): #maybe i or maybe not
+           #set wait to time out nav after certain time
             if(wait>=20000):
                 print "Nav failed"
                 cancelMove.publish(move_status[i].goal_id)
                 done = True
                 i += 1
                 break
-            #increments so that proper array is looked at when nav
-            i += 1
+            else:
+                
+                #chill
+                print "Waiting for nav to finish"
+                wait += 1
+                #increments so that proper array is looked at when nav
+                i += 1
     print "DONE"
     
 
