@@ -30,7 +30,7 @@ import math
 
 import Queue
 
-#debug github
+
 #intializes search by taking in current position
 def searchFrontiers():
     global currentPoint
@@ -104,7 +104,7 @@ def searchFrontiers():
             elif(((not cellOccupied(x)) and (not unknownSpace(x))) and  not visited(x, t)):
                 visitedList.append(x) #marks cell as visited
                 bfs.put(x) #places in search so we can look at its surroundings
-            elif(isNewFrontierCell(x)):
+            elif(isNewFrontierCell(x,0)):
                 print "Stupid list"
                 frontier_flag.append(x) #marks cell as frontier
                 print "before build new Frontier"
@@ -118,32 +118,67 @@ def searchFrontiers():
     return frontier_list #might not do this because node might just shot accros but will do for now
 
 #returns true if the cell is a new frontier cell
-def isNewFrontierCell(cell):
+def isNewFrontierCell(cell, state):
     global front
     global back
     global right
     global left
+    global frontLeft
+    global frontRight
+    global backLeft
+    global backRight
     global currentPoint
     
-    print "MADE IT TO NEW FRONTIER CELL"
-    readCurrentPos()
+    if(state == 1):
+    
+        readCurrentPos()
 
-    if(not unknownSpace(cell) or frontier_flags(cell)):
-        return False
-    fx = front
-    rx = right
-    lx = left
-    bx = back
-    #make list of neighbor to currentPoint
-    nbr = []
-    nbr.append(fx)
-    nbr.append(rx)
-    nbr.append(lx)
-    nbr.append(bx)
+        if(not unknownSpace(cell) or frontier_flags(cell)):
+            return False
+        fx = front
+        rx = right
+        lx = left
+        bx = back
+        #make list of neighbor to currentPoint
+        nbr = []
+        nbr.append(fx)
+        nbr.append(rx)
+        nbr.append(lx)
+        nbr.append(bx)
 
-    for x in nbr:
-        if(unknownSpace(x)):
-            return True
+        for x in nbr:
+            if(unknownSpace(x)):
+                print "MADE IT TO TRUE"
+                return True
+    elif(state == 0):
+        readCurrentPos()
+
+        if(not unknownSpace(cell) or frontier_flags(cell)):
+            return False
+        fx = front
+        flx = frontLeft
+        lx = left
+        frx = frontRight
+        rx = right
+        blx = backLeft
+        bx = back
+        brx = backRight
+        
+        #make list of neighbor to currentPoint
+        nbr = []
+        nbr.append(fx)
+        nbr.append(flx)
+        nbr.append(lx)
+        nbr.append(frx)
+        nbr.append(rx)
+        nbr.append(blx)
+        nbr.append(bx)
+        nbr.append(brx)
+
+        for x in nbr:
+            if(unknownSpace(x)):
+                print "MADE IT TO TRUE"
+                return True
 
     return False
 #builds new frontier based on given cell
@@ -158,6 +193,8 @@ def buildNewFrontier(cell):
     global back
     global backRight
     global frontier_flag
+    global height
+    global width
 
     centroidPoint= Point()
     centroidPoint.x=0
@@ -185,6 +222,7 @@ def buildNewFrontier(cell):
         blx = backLeft
         bx = back
         brx = backRight
+        
         nbr = []
         nbr.append(fx)
         nbr.append(flx)
@@ -194,21 +232,26 @@ def buildNewFrontier(cell):
         nbr.append(blx)
         nbr.append(bx)
         nbr.append(brx)
-
+        
+        print nbr
+        
         for j in nbr:
-            if(isNewFrontierCell(j)):
+            if( j.x >= (width*0.05) or j.y >= (height*0.05) or j.x <= (width*-0.05) or j.y <= (height*-0.05)):
+                print "out of bounds"
+            elif(isNewFrontierCell(j, 0)):
+                print j
                 frontier_flag.append(j)
                 output.size = output.size + 1
                 output.centroid.x = output.centroid.x + j.x
                 output.centroid.y = output.centroid.y + j.y
 
-            distance = distanceFormula(currentPoint,j)
-            if(distance < output.min_distance):
-                output.min_distance = distance
-                output.middle.x = j.x
-                output.middle.y = j.y
+                distance = distanceFormula(currentPoint,j)
+                if(distance < output.min_distance):
+                    output.min_distance = distance
+                    output.middle.x = j.x
+                    output.middle.y = j.y
 
-            bfs2.put(j)
+                bfs2.put(j)
 
     output.centroid.x = output.centroid.x/output.size
     output.centroid.y = output.centroid.y/output.size
@@ -308,25 +351,25 @@ def readCurrentPos():
 
     currentTheta = math.degrees(yaw)
 
-    if(math.fabs(0 - currentTheta) < threshHold): #might need to do negative angle and positive (also might want <=)
+    #if(math.fabs(0 - currentTheta) < threshHold): #might need to do negative angle and positive (also might want <=)
 
-        cardinalDir = 4
+    #    cardinalDir = 4
 
-    elif(math.fabs(90 - currentTheta) < threshHold):
+    #elif(math.fabs(90 - currentTheta) < threshHold):
 
-        cardinalDir = 1
+     #   cardinalDir = 1
 
-    elif(math.fabs(180 - currentTheta) < threshHold):
+    #elif(math.fabs(180 - currentTheta) < threshHold):
 
-        cardinalDir = 2
+     #   cardinalDir = 2
 
-    elif(math.fabs(270 - currentTheta) < threshHold):
+   # elif(math.fabs(270 - currentTheta) < threshHold):
 
-        cardinalDir = 3
+       # cardinalDir = 3
 
-    else:
+    #else:
 
-        print "Angle off or threshHold too low"
+       # print "Angle off or threshHold too low"
 
     #set to currentPoint
     #disregard was for when not using move_stack
@@ -522,6 +565,12 @@ def EightNeighbors(current):
     frontRight.x = x + unit_cell
     frontRight.y = y + unit_cell
     frontRight.z = 0
+    left.x = x - unit_cell #if point gets negative then off map do something to deal with this
+    left.y = y
+    left.z = 0
+    right.x = x + unit_cell
+    right.y = y
+    right.z = 0
     back.x = x
     back.y = y - unit_cell
     back.z = 0
@@ -580,8 +629,8 @@ def frontier_flags(cell):
 
     for frontier in frontier_flag:
         
-        if((frontier.x == cell.x) and (frontier.y == cell.y) and (frontier.z == cell.z)):
-
+        if((math.fabs(frontier.x - cell.x) < cellThresh) and (math.fabs(frontier.y - cell.y) < cellThresh) and (math.fabs(frontier.z - cell.z) < cellThresh)):
+            print "FRONTIER!!!"
             return True
 
         else:
@@ -804,11 +853,12 @@ def run():
     doneFlag = False
 
     front = Point();
-
+    frontLeft = Point();
+    frontRight = Point();
     left = Point();
-
     right = Point(); 
-
+    backLeft = Point();
+    backRight = Point();
     back = Point(); #might need to change depending on cells
 
     
