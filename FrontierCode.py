@@ -42,6 +42,8 @@ def searchFrontiers():
     global visitedList
     global frontier_flag
     global frontier_list
+    global width
+    global height
 
     #cardinalDir = 1
 
@@ -92,18 +94,27 @@ def searchFrontiers():
         #print visitedList
 
         for x in nbr:
-            print "Here"
+            print "Width"
+            print width
+            print "Height"
+            print height
             t = len(visitedList)
-            if(((not cellOccupied(x)) and (not unknownSpace(x))) and  not visited(x, t)):
+            if( x.x >= (width*0.05) or x.y >= (height*0.05) or x.x <= (width*-0.05) or x.y <= (height*-0.05)):
+                print "out of bounds"
+            elif(((not cellOccupied(x)) and (not unknownSpace(x))) and  not visited(x, t)):
                 visitedList.append(x) #marks cell as visited
                 bfs.put(x) #places in search so we can look at its surroundings
             elif(isNewFrontierCell(x)):
+                print "Stupid list"
                 frontier_flag.append(x) #marks cell as frontier
+                print "before build new Frontier"
                 new_frontier = buildNewFrontier(x)
+                print "after build new Frontier"
                 if(new_frontier.size > 1):
                     n = len(frontier_list) - 1
                     frontier_list.insert(n, new_frontier) #puts frontier at the end of the list
                     
+    print "END of Frontier Search"
     return frontier_list #might not do this because node might just shot accros but will do for now
 
 #returns true if the cell is a new frontier cell
@@ -113,10 +124,11 @@ def isNewFrontierCell(cell):
     global right
     global left
     global currentPoint
-
+    
+    print "MADE IT TO NEW FRONTIER CELL"
     readCurrentPos()
 
-    if(not unknownSpace(cell) or frontier_flag(cell)):
+    if(not unknownSpace(cell) or frontier_flags(cell)):
         return False
     fx = front
     rx = right
@@ -155,7 +167,7 @@ def buildNewFrontier(cell):
     output = Frontier(centroidPoint,1,9001)
 
     bfs2=Queue.Queue()
-    bfs2.put(initial_cell)
+    bfs2.put(cell)
     
 
 
@@ -452,7 +464,7 @@ def mrRogers(current):
 
     front.z = 0
 
-    print "front neighbor found"
+    #print "front neighbor found"
 
     left.x = x - unit_cell #if point gets negative then off map do something to deal with this
 
@@ -460,7 +472,7 @@ def mrRogers(current):
 
     left.z = 0
 
-    print "left neighbor found"
+    #print "left neighbor found"
 
     back.x = x
 
@@ -468,7 +480,7 @@ def mrRogers(current):
 
     back.z = 0
 
-    print "back neighbor found"
+    #print "back neighbor found"
 
     right.x = x + unit_cell
 
@@ -476,7 +488,7 @@ def mrRogers(current):
 
     right.z = 0
 
-    print "right neighbor found"
+    #print "right neighbor found"
 
  
 #eight neighbors
@@ -559,7 +571,7 @@ def visited(cell, length):
     else:
         return False
 #takes a cell and determines if it has been marked as a frontier_flag
-def frontier_flag(cell):
+def frontier_flags(cell):
     global frontier_flag
 
 
